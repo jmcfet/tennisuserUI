@@ -13,12 +13,13 @@ part 'user.g.dart';
 class User{
   String id;
   String Name;
+  String userid;
   String email;
   String password;
   int isFrozen;
 
 
-  User({this.id,this.Name,this.email,this.password});
+  User({this.id,this.Name,this.email,this.password,this.userid});
 
   /// A necessary factory constructor for creating a new User instance
   /// from a map. Pass the map to the generated `_$UserFromJson()` constructor.

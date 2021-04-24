@@ -45,7 +45,7 @@ class _RootPageState extends State<RootPage> {
     switch (authStatus) {
       case AuthStatus.notSignedIn:
         return new LoginPage(
-          title: 'Landings Login',
+          title: 'Landings Login ',
           auth: widget.auth,
           onSignedIn: () => _updateAuthStatus(AuthStatus.signedIn),
         //  alice:widget.alice

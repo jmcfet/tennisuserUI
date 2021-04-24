@@ -79,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
     formKey.currentState.reset();
     setState(() {
       _formType = FormType.register;
-      _authHint = '';
+      _authHint = 'userid is id you will use to login;email must be one known to club; ';
     });
   }
 
@@ -95,30 +95,44 @@ class _LoginPageState extends State<LoginPage> {
   List<Widget> usernameAndPassword() {
     return [
       padded(child: new TextFormField(
-        key: new Key('email'),
-        keyboardType: TextInputType.emailAddress,
-        decoration: new InputDecoration(labelText: 'Email'),
-        initialValue: 'larry@a.com',
-        autocorrect: false,
-        validator: (val) => validateEmail(val),
-        onSaved: (val) => _user.email = val,
+        key: new Key('UserID'),
+ //       keyboardType: TextInputType.emailAddress,
+        decoration: new InputDecoration(labelText: 'User ID '),
+         autocorrect: false,
+ //       validator: (val) => validateEmail(val),
+        onSaved: (val) => _user.userid = val,
       )),
       _formType == FormType.register? padded(child: new TextFormField(
-        key: new Key('Name'),
-        decoration: new InputDecoration(labelText: 'Name'),
+        key: new Key('Name (John Smith)'),
+        decoration: new InputDecoration(labelText: 'Name ' ),
         autocorrect: false,
     //    validator: (val) => validateEmail(val),
         onSaved: (val) => _user.Name = val,
       )):Container(),
+      _formType == FormType.register? padded(child: new TextFormField(
+        key: new Key('Name (John Smith)'),
+        decoration: new InputDecoration(labelText: 'EMail '),
+        autocorrect: false,
+        validator: (val) => validateEmail(val),
+        onSaved: (val) => _user.Name = val,
+      )):Container(),
       padded(child: new TextFormField(
         key: new Key('password'),
-        decoration: new InputDecoration(labelText: 'Password'),
-         initialValue: '1234567h',
+        decoration: new InputDecoration(labelText: 'Password (must be 6 characters)'),
         obscureText: true,
         autocorrect: false,
         validator: (val) => val.isEmpty ? 'Password can\'t be empty.' : null,
         onSaved: (val) => _user.password = val,
       )),
+      _formType == FormType.register? padded(child: new TextFormField(
+        key: new Key('confirm password'),
+        decoration: new InputDecoration(labelText: 'confirm Password'),
+  //      initialValue: '1234567h',
+        obscureText: true,
+        autocorrect: false,
+        validator: (val) =>  _user.password != val ? 'Password must match' : null,
+    //    onSaved: (val) => comparepass(val),
+      )):Container()
 
     ];
   }
@@ -148,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           new FlatButton(
             key: new Key('need-account'),
-            child: new Text("Need an account? Register"),
+            child: new Text("Need an account? REGISTER"),
             onPressed: moveToRegister
           ),
 
@@ -157,13 +171,13 @@ class _LoginPageState extends State<LoginPage> {
         return [
           new PrimaryButton(
             key: new Key('register'),
-            text: 'Create an Club account',
+            text: 'Create an Club account  (must have email known to club)',
             height: 44.0,
             onPressed: validateAndSubmit
           ),
           new TextButton(
             key: new Key('need-login'),
-            child: new Text("Have an account? Login"),
+            child: new Text("Have an account? LOGIN"),
             onPressed: moveToLogin
           ),
         ];
@@ -171,14 +185,14 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
-  Widget hintText() {
+  Widget hintText(color) {
     return new Container(
         //height: 80.0,
         padding: const EdgeInsets.all(32.0),
         child: new Text(
             _authHint,
             key: new Key('hint'),
-            style: new TextStyle(fontSize: 18.0, color: Colors.red),
+            style: new TextStyle(fontSize: 18.0, color: color),
             textAlign: TextAlign.center)
     );
   }
@@ -213,7 +227,7 @@ class _LoginPageState extends State<LoginPage> {
       home: new Scaffold(
 
       appBar: new AppBar(
-        title: new Text(widget.title),
+        title: new Text('Landings registration page'),
       ),
       backgroundColor: Colors.grey[300],
       body: new SingleChildScrollView(child: new Container(
@@ -236,7 +250,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ])
             ),
-            hintText()
+            hintText(Colors.blueAccent)
           ]
         )
       )

@@ -53,12 +53,12 @@ class AuthASP  {
 
 
 
-  Future<UserResponse> signIn(String email, String password) async {
+  Future<UserResponse> signIn(String userid, String password) async {
     String targethost = '10.0.2.2';
 
     UserResponse resp = new UserResponse();
     var queryParameters = {
-      'username': email,
+      'username': userid,
       'password': password,
 
     };
@@ -75,7 +75,7 @@ class AuthASP  {
 
         //the user name and password along with the grant type are passed the body as text.
         //and the contentype must be x-www-form-urlencoded
-        var loginInfo = 'UserName=' + email + '&Password=' + password +
+        var loginInfo = 'UserName=' + userid + '&Password=' + password +
             '&grant_type=password';
 
         final response = await http

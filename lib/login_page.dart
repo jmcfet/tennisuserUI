@@ -46,11 +46,11 @@ class _LoginPageState extends State<LoginPage> {
     if (validateAndSave()) {
       if (_formType == FormType.login) {
         UserResponse resp = await widget.auth.signIn(
-            _user.email, _user.password);
+            _user.userid, _user.password);
 
         if (resp.error == '200') {
           resp = await widget.auth.getUser(
-              _user.email);
+              _user.userid);
           Globals.user = resp.user;
           widget.onSignedIn();
         } else {
@@ -114,14 +114,14 @@ class _LoginPageState extends State<LoginPage> {
         decoration: new InputDecoration(labelText: 'EMail '),
         autocorrect: false,
         validator: (val) => validateEmail(val),
-        onSaved: (val) => _user.Name = val,
+        onSaved: (val) => _user.email = val,
       )):Container(),
       padded(child: new TextFormField(
         key: new Key('password'),
         decoration: new InputDecoration(labelText: 'Password (must be 6 characters)'),
         obscureText: true,
         autocorrect: false,
-        validator: (val) => val.isEmpty ? 'Password can\'t be empty.' : null,
+        validator: (val) => validatepassword(val),
         onSaved: (val) => _user.password = val,
       )),
       _formType == FormType.register? padded(child: new TextFormField(
@@ -130,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
   //      initialValue: '1234567h',
         obscureText: true,
         autocorrect: false,
-        validator: (val) =>  _user.password != val ? 'Password must match' : null,
+        validator: (val) => _user.password != val ? 'Password must match' : null,
     //    onSaved: (val) => comparepass(val),
       )):Container()
 
@@ -148,6 +148,18 @@ class _LoginPageState extends State<LoginPage> {
     }else {
       return null;
     }
+  }
+  String confirmPassword(value)
+  {
+    if (_user.password != value)
+      return  'Password must match';
+    return null;
+  }
+  String validatepassword(String value) {
+    if (value.isEmpty)
+      return  'Password must be filled in';
+    _user.password = value;
+    return null;
   }
 
   List<Widget> submitWidgets() {
@@ -171,7 +183,7 @@ class _LoginPageState extends State<LoginPage> {
         return [
           new PrimaryButton(
             key: new Key('register'),
-            text: 'Create an Club account  (must have email known to club)',
+            text: 'Create an Club account',
             height: 44.0,
             onPressed: validateAndSubmit
           ),
@@ -221,13 +233,14 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    String heading = FormType.register == true ? 'Landings Club member registration' : 'Landings Club Login';
     return MaterialApp(
   //      navigatorKey: widget.auth.alice.getNavigatorKey(),
         debugShowCheckedModeBanner: false,
       home: new Scaffold(
 
       appBar: new AppBar(
-        title: new Text('Landings registration page'),
+        title:   Text(heading),
       ),
       backgroundColor: Colors.grey[300],
       body: new SingleChildScrollView(child: new Container(

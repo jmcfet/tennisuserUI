@@ -10,6 +10,8 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 //import 'package:mycalender/SERVICE/fileops.dart';
 import 'dart:convert';
+import "package:login/Models/UserResponse.dart";
+import "package:login/Models/BookedDatesResponse.dart";
 enum CalendarViews{ dates, months, year }
 
 class CalenderHome extends StatefulWidget {
@@ -35,6 +37,8 @@ class _MyAppState extends State<CalenderHome> {
   final List<String> _monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   List<int> States = List();
   List<MatchDTO> matches = [];
+  String existingBookings;
+  List<String> statusdays;
 
 //  static FileService fileservice = new FileService();
   @override
@@ -47,7 +51,10 @@ class _MyAppState extends State<CalenderHome> {
     if (viewOnlyMode == true)
       getuserinfo(month);
     else
-      setState(() => _getCalendar());
+      {
+        getBookDates(month);
+      }
+
 
 
   }
@@ -62,13 +69,23 @@ class _MyAppState extends State<CalenderHome> {
 
   }
   Future <String> getuserinfo(int month ) async {
-    MatchsResponse resp =   await auth.getUserStuffForMonth(month, Globals.user.Name);
+    MatchsResponse resp =   await auth.getMatchsForMonth(month, Globals.user.email);
     matches = resp.matches;
  //   WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
 
       setState(() => _getCalendar());
  //   });
     return 'done';
+  }
+
+  Future <String> getBookDates(int month ) async {
+    BookedDatesResponse resp =   await auth.GetMonthStatusforUser(month.toString(), Globals.user.email);
+
+    int numDays = int.parse(resp.status.status[0]);
+    statusdays = resp.status.status.split(',');
+
+    setState(() => _getCalendar());
+    return resp.status.status;
   }
 
   @override
@@ -93,6 +110,10 @@ class _MyAppState extends State<CalenderHome> {
 
   // dates view
   Widget _datesView(){
+    String title = Globals.user.Name + ' Matches for '  + _monthNames[_currentDateTime.month-1] + ' ' + _currentDateTime.year.toString();
+    if (!viewOnlyMode)
+     title = Globals.user.Name + ' schedule matchs for  '  + _monthNames[_currentDateTime.month-1] + ' ' + _currentDateTime.year.toString();
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -107,13 +128,13 @@ class _MyAppState extends State<CalenderHome> {
                 onTap: () => setState(() => _currentView = CalendarViews.months),
                 child: Center(
                   child: Text(
-                    '${Globals.user.Name} ${ _monthNames[_currentDateTime.month-1]} ${_currentDateTime.year}',
+                    title,
                     style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
             ),
-            _SaveBtn(),
+            _SaveBtn(context),
             // next month button
             _toggleBtn(true),
           ],
@@ -135,24 +156,16 @@ class _MyAppState extends State<CalenderHome> {
       return Container();
     return InkWell(
       onTap: () async{
-        if(_currentView == CalendarViews.dates){
+
           if (viewOnlyMode){
             (next) ? _getNextMonth() : _getPrevMonth();
-            MatchsResponse resp = await auth.getUserStuffForMonth(_currentDateTime.month, Globals.user.Name);
-            matches = resp.matches;
-          }
 
-          setState(() {});
-        }
-        else if(_currentView == CalendarViews.year){
-          if(next){
-            midYear = (midYear == null) ? _currentDateTime.year + 9 : midYear + 9;
           }
-          else{
-            midYear = (midYear == null) ? _currentDateTime.year - 9 : midYear - 9;
-          }
+          MatchsResponse resp = await auth.getMatchsForMonth(_currentDateTime.month, Globals.user.email);
+          matches = resp.matches;
           setState(() {});
-        }
+
+
       },
       child: Container(
         alignment: Alignment.center,
@@ -180,12 +193,12 @@ class _MyAppState extends State<CalenderHome> {
       ),
     );
   }
-  Widget _SaveBtn() {
+  Widget _SaveBtn(context) {
     if (viewOnlyMode == true)
       return Container();
     return InkWell(
 
-      onTap: (){
+      onTap:  () async{
            int count = 0;
            States.add(0);
            for( int i = 0;  i < _sequentialDates.length;i++){
@@ -199,7 +212,18 @@ class _MyAppState extends State<CalenderHome> {
            }
            States[0] = count;
 
-           auth.SetBookedDatesforuser(Globals.user.Name,_currentDateTime.month,States);
+           UserResponse resp = await auth.SetBookedDatesforuser(Globals.user.email,_currentDateTime.month,States);
+           if (resp.error == '200')
+             {
+               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                 content: const Text('Saved'),
+                 duration: const Duration(seconds: 1),
+                 action: SnackBarAction(
+                   label: 'ACTION',
+                   onPressed: () { },
+                 ),
+               ));
+             }
       },
       child: Container(
         alignment: Alignment.center,
@@ -523,7 +547,7 @@ class _MyAppState extends State<CalenderHome> {
 
   // get calendar for current month
   void _getCalendar(){
-    _sequentialDates = CustomCalendar().getMonthCalendar(_currentDateTime.month, _currentDateTime.year, startWeekDay: StartWeekDay.monday);
+    _sequentialDates = CustomCalendar().getMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays, startWeekDay: StartWeekDay.monday);
   }
 
   // show months list

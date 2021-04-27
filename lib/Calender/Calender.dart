@@ -17,7 +17,7 @@ class CustomCalendar{
 
   /// get the month calendar
   /// month is between from 1-12 (1 for January and 12 for December)
-  List<Calendar> getMonthCalendar(int month, int year, {StartWeekDay startWeekDay = StartWeekDay.sunday}){
+  List<Calendar> getMonthCalendar(int month, int year, List<String> existingstatus, {StartWeekDay startWeekDay = StartWeekDay.sunday}){
 
     // validate
     if(year == null || month == null || month < 1 || month > 12) throw ArgumentError('Invalid year or month');
@@ -42,6 +42,7 @@ class CustomCalendar{
           // i+1 because day starts from 1 in DateTime class
           date: DateTime(year, month, i+1),
           thisMonth: true,
+          state: int.parse(existingstatus[i+1])
         ),
       );
     }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart';
+import 'package:login/Models/BookDates.dart';
 import 'package:login/Models/UserInfo.dart';
 
 import 'globals.dart';
@@ -12,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'Models/UserInfo.dart';
 import "Models/MatchDTO.dart";
 import "Models/MatchsResponse.dart";
+import "Models/BookedDatesResponse.dart";
 
 abstract class BaseAuth {
 
@@ -217,13 +219,14 @@ class AuthASP  {
  //   return resp;
     return list;
   }
+  //this call is needed because we have no control over the token endpoint
   Future<UserResponse>  getUser(String Name) async {
     UserResponse resp = new UserResponse();
     List<MatchDTO> matchinfo = [];
     var response;
     String list;
     var queryParameters1 = {
-      'email': Name,
+      'userid': Name,
 
     };
     //all calls to the server are now secure so must pass the oAuth token or our call will be rejected
@@ -233,7 +236,7 @@ class AuthASP  {
       var url = new Uri(scheme: 'http',
           host: 'localhost',
           port: 52175,
-          path: '/api/Account/GetUser',
+          path: '/api/Account/GetUserbyUserID',
           queryParameters:queryParameters1
       );
 
@@ -255,7 +258,7 @@ class AuthASP  {
 
   }
 
-  Future<MatchsResponse>  getUserStuffForMonth(int month,String Name) async {
+  Future<MatchsResponse>  getMatchsForMonth(int month,String Name) async {
     MatchsResponse resp = new MatchsResponse();
     List<MatchDTO> matchinfo = [];
     var response;
@@ -271,7 +274,7 @@ class AuthASP  {
     var url = new Uri(scheme: 'http',
         host: 'localhost',
         port: 52175,
-        path: '/api/Account/GetUserInfoforMonth',
+        path: '/api/Account/GetMatchesforMonth',
         queryParameters:queryParameters1
     );
 
@@ -292,6 +295,34 @@ class AuthASP  {
     return  resp;
     //   return resp;
 
+  }
+  Future<BookedDatesResponse>  GetMonthStatusforUser(String month,String email) async {
+    BookedDatesResponse resp = new BookedDatesResponse();
+    var response;
+    Map Datesmap;
+    var queryParameters1 = {
+      'month': month,
+      'email': email
+
+    };
+    var url = new Uri(scheme: 'http',
+        host: 'localhost',
+        port: 52175,
+
+        path: '/api/Account/GetMonthStatusforUser',
+        queryParameters:queryParameters1
+    );
+    try {
+      response = await http.get(url);
+      Datesmap = json.decode(response.body);
+
+    } catch (error, stacktrace) {
+      print("Exception occured: $error stackTrace: $stacktrace");
+      resp.error = error;
+      return resp;
+    }
+    resp.status = BookDates.fromJSON(Datesmap);
+    return resp;
   }
   Future<bool>  isDBFrozen() async {
 

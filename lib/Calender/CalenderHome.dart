@@ -38,7 +38,7 @@ class _MyAppState extends State<CalenderHome> {
   List<int> States = List();
   List<MatchDTO> matches = [];
   String existingBookings;
-  List<String> statusdays;
+  List<String> statusdays = [];
 
 //  static FileService fileservice = new FileService();
   @override
@@ -80,10 +80,10 @@ class _MyAppState extends State<CalenderHome> {
 
   Future <String> getBookDates(int month ) async {
     BookedDatesResponse resp =   await auth.GetMonthStatusforUser(month.toString(), Globals.user.email);
-
-    int numDays = int.parse(resp.status.status[0]);
-    statusdays = resp.status.status.split(',');
-
+    if (resp.status != null) {
+      int numDays = int.parse(resp.status.status[0]);
+      statusdays = resp.status.status.split(',');
+    }
     setState(() => _getCalendar());
     return resp.status.status;
   }
@@ -199,6 +199,7 @@ class _MyAppState extends State<CalenderHome> {
     return InkWell(
 
       onTap:  () async{
+          States.clear();
            int count = 0;
            States.add(0);
            for( int i = 0;  i < _sequentialDates.length;i++){
@@ -438,7 +439,7 @@ class _MyAppState extends State<CalenderHome> {
             onPressed: ()  {
               selectedDate = calendarDate.date.day;
               if (!viewOnlyMode) {
-                _showSingleChoiceDialog(context);
+                _showSingleChoiceDialog(context,calendarDate.state);
                 return;
               }
              //    .then((value) async{
@@ -470,10 +471,10 @@ class _MyAppState extends State<CalenderHome> {
       ),
     );
   }
-  final List<String> countries = ['unavailable', 'sub'     ];
+  final List<String> states = ['available','unavailable', 'sub'     ];
   String currentChoice;
   int selectedDate;
-  _showSingleChoiceDialog(BuildContext context) => showDialog(
+  _showSingleChoiceDialog(BuildContext context,int state) => showDialog(
       context: context,
       builder: (context) {
         //   var _singleNotifier = Provider.of<SingleNotifier>(context);
@@ -484,7 +485,7 @@ class _MyAppState extends State<CalenderHome> {
                 width: double.infinity,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: countries
+                  children: states
                       .map((e) => RadioListTile(
                       title: Text(e),
                       value: e,
@@ -497,7 +498,9 @@ class _MyAppState extends State<CalenderHome> {
                            Calendar selectedday = _sequentialDates.where((element) => element.date.month == _currentDateTime.month &&
                                element.date.day == selectedDate).singleOrNull;
                            switch (value) {
-
+                             case 'available':
+                                selectedday.state = 0;
+                                break;
                               case 'sub':
                                 selectedday.state = 1;
                                 break;

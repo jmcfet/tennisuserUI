@@ -321,6 +321,11 @@ class AuthASP  {
       resp.error = error;
       return resp;
     }
+    if (Datesmap == null)     //new user
+      {
+        resp.status = null;
+        return resp;
+      }
     resp.status = BookDates.fromJSON(Datesmap);
     return resp;
   }

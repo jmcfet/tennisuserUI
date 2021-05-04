@@ -52,7 +52,11 @@ class Auth implements BaseAuth {
 
 class AuthASP  {
   AuthASP();
-
+  String server = 'localhost';
+  int port = 44330;
+  String scheme = 'https';
+//  String server = 'landingstennis.com';
+//  int port = 80;
 
 
   Future<UserResponse> signIn(String userid, String password) async {
@@ -64,17 +68,19 @@ class AuthASP  {
       'password': password,
 
     };
+
     //we are using asp.net Identity for login/registration. the first time we
     //login we must obtain an OAuth token which we obtain by calling the Token endpoint
     //and pass in the email and password that the user registered with.
     try {
 
-        var gettokenuri = new Uri(scheme: 'http',
-            host: 'localhost',
-            port: 52175,
+        var gettokenuri = new Uri(scheme: scheme,
+            host: server,
+            port: port,
       //      host: targethost,
             path: '/Token');
-
+  //      if (server == 'localhost')
+  //        gettokenuri.port = port;
         //the user name and password along with the grant type are passed the body as text.
         //and the contentype must be x-www-form-urlencoded
         var loginInfo = 'UserName=' + userid + '&Password=' + password +
@@ -118,14 +124,16 @@ class AuthASP  {
     js = jsonEncode(user);
 
     //from the emulator 10.0.2.2 is mapped to 127.0.0.1  in windows
+    var uri = new Uri(scheme: scheme,
+        host: server,
+        port: port,
+        //      host: targethost,
+        path: "/api/Account/Register");
 
-    var url1 = 'http://' + targethost + "/api/Account/Register";
-    var url =  'http://localhost:52175/api/Account/Register';
     try {
       // final request = await client.p;
       final response = await http
-          .post(url,
-
+          .post(uri,
           headers: {"Content-Type": "application/json"},
           body: js)
           .then((response) {
@@ -156,9 +164,9 @@ class AuthASP  {
       'EMail': email,
 
     };
-    var url = new Uri(scheme: 'http',
-      host: 'localhost',
-      port: 52175,
+    var uri = new Uri(scheme: scheme,
+      host: server,
+      port: port,
       path: '/api/Account/StatusOfDaysinMonth',
       queryParameters: queryParameters1
     );
@@ -166,7 +174,7 @@ class AuthASP  {
     String authorization = 'Bearer ' + Globals.token;
    try {
         final response = await http.post(
-          url,
+          uri,
           headers: {HttpHeaders.contentTypeHeader: "application/json",HttpHeaders.authorizationHeader: authorization},
             body: js
         );
@@ -195,9 +203,9 @@ class AuthASP  {
     };
     //all calls to the server are now secure so must pass the oAuth token or our call will be rejected
     String authorization = 'Bearer ' + Globals.token;
-    var url = new Uri(scheme: 'http',
-      host: 'localhost',
-      port: 52175,
+    var url = new Uri(scheme: scheme,
+      host: server,
+      port: port,
       path: '/api/Account/GetPlayersinMatch',
         queryParameters:queryParameters1
     );
@@ -233,9 +241,9 @@ class AuthASP  {
     String authorization = 'Bearer ' + Globals.token;
     Map usermap;
     try {
-      var url = new Uri(scheme: 'http',
-          host: 'localhost',
-          port: 52175,
+      var url = new Uri(scheme: scheme,
+          host: server,
+          port: port,
           path: '/api/Account/GetUserbyUserID',
           queryParameters:queryParameters1
       );
@@ -271,9 +279,9 @@ class AuthASP  {
     //all calls to the server are now secure so must pass the oAuth token or our call will be rejected
     String authorization = 'Bearer ' + Globals.token;
     try {
-    var url = new Uri(scheme: 'http',
-        host: 'localhost',
-        port: 52175,
+    var url = new Uri(scheme: scheme,
+        host: server,
+        port: port,
         path: '/api/Account/GetMatchesforMonth',
         queryParameters:queryParameters1
     );
@@ -305,9 +313,9 @@ class AuthASP  {
       'email': email
 
     };
-    var url = new Uri(scheme: 'http',
-        host: 'localhost',
-        port: 52175,
+    var url = new Uri(scheme: scheme,
+        host: server,
+        port: port,
 
         path: '/api/Account/GetMonthStatusforUser',
         queryParameters:queryParameters1
@@ -335,9 +343,9 @@ class AuthASP  {
     String authorization = 'Bearer ' + Globals.token;
     var response;
     try {
-      var url = new Uri(scheme: 'http',
-          host: 'localhost',
-          port: 52175,
+      var url = new Uri(scheme: scheme,
+          host: server,
+          port: port,
           path: '/api/Account/isfreezedatabase',
 
       );

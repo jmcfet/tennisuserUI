@@ -12,6 +12,7 @@ import 'package:collection/collection.dart';
 import 'dart:convert';
 import "package:login/Models/UserResponse.dart";
 import "package:login/Models/BookedDatesResponse.dart";
+import 'package:awesome_dialog/awesome_dialog.dart';
 enum CalendarViews{ dates, months, year }
 
 class CalenderHome extends StatefulWidget {
@@ -77,7 +78,7 @@ class _MyAppState extends State<CalenderHome> {
  //   });
     return 'done';
   }
-
+  //get the status of each bookable day in the month. e,g june 5 is unavailable
   Future <String> getBookDates(int month ) async {
     BookedDatesResponse resp =   await auth.GetMonthStatusforUser(month.toString(), Globals.user.email);
     if (resp.status != null) {
@@ -216,6 +217,16 @@ class _MyAppState extends State<CalenderHome> {
            UserResponse resp = await auth.SetBookedDatesforuser(Globals.user.email,_currentDateTime.month,States);
            if (resp.error == '200')
              {
+               AwesomeDialog(
+                   context: context,
+                   animType: AnimType.LEFTSLIDE,
+                   headerAnimationLoop: false,
+                   dialogType: DialogType.INFO,
+                   title: 'changes saved',
+                   autoHide: Duration(seconds: 2),
+               )
+                 ..show();
+               /*
                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                  content: const Text('Saved'),
                  duration: const Duration(seconds: 1),
@@ -224,6 +235,8 @@ class _MyAppState extends State<CalenderHome> {
                    onPressed: () { },
                  ),
                ));
+
+                */
              }
       },
       child: Container(

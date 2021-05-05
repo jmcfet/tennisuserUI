@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:login/Calender/Calender.dart';
 import 'package:flutter/material.dart';
 import 'package:login/Models/MatchDTO.dart';
+import 'package:login/Models/user.dart';
 import 'package:login/auth.dart';
 import 'package:login/globals.dart';
 import "package:login/Models/MatchsResponse.dart";
@@ -11,6 +12,7 @@ import 'package:collection/collection.dart';
 //import 'package:mycalender/SERVICE/fileops.dart';
 import 'dart:convert';
 import "package:login/Models/UserResponse.dart";
+import "package:login/Models/UsersResponse.dart";
 import "package:login/Models/BookedDatesResponse.dart";
 import 'package:awesome_dialog/awesome_dialog.dart';
 enum CalendarViews{ dates, months, year }
@@ -40,7 +42,7 @@ class _MyAppState extends State<CalenderHome> {
   List<MatchDTO> matches = [];
   String existingBookings;
   List<String> statusdays = [];
-
+  List<User> allusers = [];
 //  static FileService fileservice = new FileService();
   @override
   void initState()  {
@@ -49,8 +51,10 @@ class _MyAppState extends State<CalenderHome> {
     _currentDateTime = DateTime(date.year, month);
     _selectedDateTime = DateTime(date.year, month, date.day);
 //    getDBState();
-    if (viewOnlyMode == true)
+    if (viewOnlyMode == true) {
       getuserinfo(month);
+      getallUsers();
+    }
     else
       {
         getBookDates(month);
@@ -87,6 +91,10 @@ class _MyAppState extends State<CalenderHome> {
     }
     setState(() => _getCalendar());
     return resp.status.status;
+  }
+  Future <void> getallUsers( ) async {
+    UsersResponse resp =    await auth.getUsers();
+    allusers = resp.users;
   }
 
   @override
@@ -452,32 +460,17 @@ class _MyAppState extends State<CalenderHome> {
             onPressed: ()  {
               selectedDate = calendarDate.date.day;
               if (!viewOnlyMode) {
+         //       showChoices();
                 _showSingleChoiceDialog(context,calendarDate.state);
                 return;
               }
              //    .then((value) async{
               //      if (_sequentialDates[selectedDate].state == 8){
-                      MatchDTO m = matches.firstWhereOrNull((element) => element.day == selectedDate);
-                      var players =m.players.join(',');
+              MatchDTO m = matches.firstWhereOrNull((element) => element.day == selectedDate);
 
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: new Text("Match!!"),
-                            content: new Text(players),
-                            actions: <Widget>[
-                              new FlatButton(
-                                child: new Text("OK"),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      ) ;
-                    }
+              showPlayers(m);
+
+            }
    //                 });
          //   },
           )
@@ -538,6 +531,140 @@ class _MyAppState extends State<CalenderHome> {
               ),
             ));
       });
+  showPlayers(MatchDTO m){
+     AwesomeDialog dialog;
+     dialog = AwesomeDialog(
+      context: context,
+      animType: AnimType.SCALE,
+      dialogType: DialogType.INFO,
+      keyboardAware: true,
+      width: 500,
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: <Widget>[
+            Text(
+              'match',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Material(
+                elevation: 0,
+                color: Colors.blueGrey.withAlpha(40),
+                child: Row(
+                  children:
+                    getPlayerinfoforMatch(m.players[0])
+                  ,
+                )
+
+
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Material(
+                elevation: 0,
+                color: Colors.blueGrey.withAlpha(40),
+                child:   Row(
+                  children: getPlayerinfoforMatch(m.players[1])
+                )
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Material(
+                elevation: 0,
+                color: Colors.blueGrey.withAlpha(40),
+                child:   Row(
+                  children:
+                    getPlayerinfoforMatch(m.players[2])
+                  ,
+                )
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Material(
+                elevation: 0,
+                color: Colors.blueGrey.withAlpha(40),
+                child:   Row(
+                  children:
+                  getPlayerinfoforMatch(m.players[3])
+                  ,
+                )
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            AnimatedButton(
+                text: 'Close',
+                pressEvent: () {
+                  dialog.dissmiss();
+                })
+          ],
+        ),
+      ),
+    )..show();
+  }
+
+  showChoices(){
+    AwesomeDialog dialog;
+    final List<String> states = ['available','unavailable', 'sub'     ];
+    dialog = AwesomeDialog(
+      context: context,
+      animType: AnimType.SCALE,
+      dialogType: DialogType.INFO,
+      keyboardAware: true,
+      width: 500,
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child:  SingleChildScrollView(
+            child: Container(
+            width: double.infinity,
+                child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                  children: states
+                      .map((e) => RadioListTile(
+                            title: Text(e),
+                            value: e,
+                            groupValue: currentChoice,
+                            selected: currentChoice == e,
+                            onChanged: (value) {
+
+                              setState( () {
+                                var test = selectedDate;
+                                Calendar selectedday = _sequentialDates.where((element) => element.date.month == _currentDateTime.month &&
+                                    element.date.day == selectedDate).singleOrNull;
+                                switch (value) {
+                                  case 'available':
+                                    selectedday.state = 0;
+                                    break;
+                                  case 'sub':
+                                    selectedday.state = 1;
+                                    break;
+                                  case 'unavailable':
+                                    selectedday.state = 2;
+                                    break;
+                                  case 'match':
+                                    selectedday.state = 8;
+                                    break;
+                                  default:
+                                    selectedday.state = 0;
+                                }
+                              }
+                              );
+
+                            }
+                        )
+                      ).toList(),
+                    )
+             )
+        )
+
+      ))..show();
+  }
   // get next month calendar
   void _getNextMonth() {
     if(_currentDateTime.month == 12) {
@@ -600,7 +727,22 @@ class _MyAppState extends State<CalenderHome> {
       ],
     );
   }
+  List<Widget> getPlayerinfoforMatch(String email){
+    List<Widget> rowcontent = [];
 
+    rowcontent.add(Expanded(
+    flex:1,
+    child: Text( (allusers.where((u) => u.email == email ).single).Name)
+    )
+    );
+    rowcontent.add(Expanded(
+        flex:1,
+        child: Text( email)
+    )
+    );
+    return rowcontent;
+
+  }
   // years list views
   Widget _yearsView(int midYear){
     return Column(

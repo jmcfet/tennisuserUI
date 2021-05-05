@@ -6,6 +6,7 @@ import 'package:http/http.dart';
 import 'package:login/Models/BookDates.dart';
 import 'package:login/Models/UserInfo.dart';
 
+import 'Models/UsersResponse.dart';
 import 'globals.dart';
 import 'Models/user.dart';
 import 'Models/UserResponse.dart';
@@ -265,7 +266,28 @@ class AuthASP  {
     //   return resp;
 
   }
+  Future<UsersResponse>  getUsers() async {
+    UsersResponse resp = new UsersResponse();
+    var response;
+    Iterable list;
+    var url = new Uri(scheme: 'http',
+      host: 'localhost',
+      port: 52175,
 
+      path: '/api/Account/getUsers',
+    );
+    try {
+      response = await http.get(url);
+      list = json.decode(response.body);
+
+    } catch (error, stacktrace) {
+      print("Exception occured: $error stackTrace: $stacktrace");
+      resp.error = error;
+      return resp;
+    }
+    resp.users = list.map((model) => User.fromJson(model)).toList();
+    return resp;
+  }
   Future<MatchsResponse>  getMatchsForMonth(int month,String Name) async {
     MatchsResponse resp = new MatchsResponse();
     List<MatchDTO> matchinfo = [];

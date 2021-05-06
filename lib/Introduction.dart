@@ -19,7 +19,7 @@ class Intro extends StatelessWidget {
     final int month =  DateTime.now().month;
     return MaterialApp(
 
-        //   debugShowCheckedModeBanner: false,
+           debugShowCheckedModeBanner: false,
         home: Scaffold(
             appBar: AppBar(
               title: Text('Landings MWF Tennis'),

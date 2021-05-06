@@ -43,6 +43,7 @@ class _MyAppState extends State<CalenderHome> {
   String existingBookings;
   List<String> statusdays = [];
   List<User> allusers = [];
+  bool saveButtonEnabled = false;
 //  static FileService fileservice = new FileService();
   @override
   void initState()  {
@@ -203,7 +204,7 @@ class _MyAppState extends State<CalenderHome> {
     );
   }
   Widget _SaveBtn(context) {
-    if (viewOnlyMode == true)
+    if (viewOnlyMode == true || !saveButtonEnabled)
       return Container();
     return InkWell(
 
@@ -234,6 +235,10 @@ class _MyAppState extends State<CalenderHome> {
                    autoHide: Duration(seconds: 2),
                )
                  ..show();
+               setState(() {
+                 saveButtonEnabled = false;
+               });
+
                /*
                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                  content: const Text('Saved'),
@@ -462,6 +467,7 @@ class _MyAppState extends State<CalenderHome> {
               if (!viewOnlyMode) {
          //       showChoices();
                 _showSingleChoiceDialog(context,calendarDate.state);
+
                 return;
               }
              //    .then((value) async{
@@ -521,7 +527,7 @@ class _MyAppState extends State<CalenderHome> {
                             }
                           }
                           );
-
+                         saveButtonEnabled = true;
                           Navigator.of(context).pop();
                        // }
                       }

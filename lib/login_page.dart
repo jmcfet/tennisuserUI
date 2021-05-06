@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:login/playhelp.dart';
 import 'primary_button.dart';
 import 'auth.dart';
 import 'Models/user.dart';
@@ -100,6 +101,7 @@ class _LoginPageState extends State<LoginPage> {
  //       keyboardType: TextInputType.emailAddress,
         decoration: new InputDecoration(labelText: 'User ID '),
          autocorrect: false,
+   //     initialValue: 'jmcfet',
  //       validator: (val) => validateEmail(val),
         onSaved: (val) => _user.userid = val,
       )),
@@ -231,7 +233,16 @@ class _LoginPageState extends State<LoginPage> {
       },
     );
   }
+  PlayHelpVideo()
+  {
+    Navigator.push(
+        context,
+        MaterialPageRoute(  // transitions to the new route using a platform-specific animation.
+        builder: (context) => PlayVideo()
+        )
 
+    );
+  }
   @override
   Widget build(BuildContext context) {
     String heading = FormType.register == true ? 'Landings Club member registration' : 'Landings Club Login';
@@ -242,6 +253,13 @@ class _LoginPageState extends State<LoginPage> {
 
       appBar: new AppBar(
         title:   Text(heading),
+          actions: <Widget>[
+            IconButton(
+                icon: Icon(Icons.play_circle_filled),
+                onPressed: () {
+                PlayHelpVideo();
+                },
+            )],
       ),
       backgroundColor: Colors.grey[300],
       body: new SingleChildScrollView(child: new Container(

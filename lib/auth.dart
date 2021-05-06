@@ -53,11 +53,11 @@ class Auth implements BaseAuth {
 
 class AuthASP  {
   AuthASP();
-  String server = 'localhost';
-  int port = 44330;
+//  String server = 'localhost';
+//  int port = 44330;
   String scheme = 'https';
-//  String server = 'landingstennis.com';
-//  int port = 80;
+  String server = 'landingstennis.com';
+  int port = 443;
 
 
   Future<UserResponse> signIn(String userid, String password) async {
@@ -244,7 +244,7 @@ class AuthASP  {
     try {
       var url = new Uri(scheme: scheme,
           host: server,
-          port: port,
+ //         port: port,
           path: '/api/Account/GetUserbyUserID',
           queryParameters:queryParameters1
       );
@@ -270,9 +270,9 @@ class AuthASP  {
     UsersResponse resp = new UsersResponse();
     var response;
     Iterable list;
-    var url = new Uri(scheme: 'http',
-      host: 'localhost',
-      port: 52175,
+    var url = new Uri(scheme: scheme,
+      host: server,
+      port: port,
 
       path: '/api/Account/getUsers',
     );

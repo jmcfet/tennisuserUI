@@ -5,7 +5,7 @@ import 'auth.dart';
 import 'Models/user.dart';
 import 'Models/UserResponse.dart';
 import 'package:login/globals.dart';
-
+import 'package:awesome_dialog/awesome_dialog.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key key, this.title, this.auth,this.onSignedIn}) : super(key: key);
@@ -175,10 +175,15 @@ class _LoginPageState extends State<LoginPage> {
             height: 44.0,
             onPressed: validateAndSubmit
           ),
-          new FlatButton(
+          new TextButton(
             key: new Key('need-account'),
             child: new Text("Need an account? REGISTER"),
             onPressed: moveToRegister
+          ),
+          new TextButton(
+              key: new Key('neededpassword'),
+              child: new Text("Forgot password"),
+              onPressed: forgotPassword
           ),
 
         ];
@@ -296,6 +301,89 @@ class _LoginPageState extends State<LoginPage> {
       padding: EdgeInsets.symmetric(vertical: 8.0),
       child: child,
     );
+  }
+  void forgotPassword() async{
+    var _formkey = new GlobalKey<FormState>();
+    AwesomeDialog dialog;
+    dialog = AwesomeDialog(
+      context: context,
+      animType: AnimType.SCALE,
+      dialogType: DialogType.INFO,
+      keyboardAware: true,
+      width:500,
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+    child:new Form(
+    key: _formkey,
+        child: Column(
+            children: <Widget>[
+              Text(
+                'Password reset',
+                style: Theme.of(context).textTheme.headline6,
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Material(
+                elevation: 0,
+                color: Colors.blueGrey.withAlpha(40),
+                child: TextFormField(
+                  autofocus: true,
+                  minLines: 1,
+                  validator: (val) => validateEmail(val),
+                  onSaved:
+                      (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter some text';
+                    }
+                    _user.email = value;
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    labelText: 'email',
+                    prefixIcon: Icon(Icons.text_fields),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Material(
+                elevation: 0,
+                color: Colors.blueGrey.withAlpha(40),
+                child: TextFormField(
+                  autofocus: true,
+                  maxLengthEnforced: true,
+                  minLines: 2,
+                  maxLines: null,
+                  validator: (val) => validatepassword(val),
+                  onSaved: (val) => _user.password = val,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    labelText: 'Password',
+                    prefixIcon: Icon(Icons.text_fields),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              AnimatedButton(
+                  text: 'Close',
+                  pressEvent: () async {
+                    _formkey.currentState.validate();
+                    _formkey.currentState.save();
+                    await widget.auth.resetPassword(_user.email,_user.password);
+                    dialog.dissmiss();
+                  })
+
+            ]
+        ),
+      ),
+      )
+    )..show();
+
   }
 }
 

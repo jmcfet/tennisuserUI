@@ -15,7 +15,27 @@ import 'Models/UserInfo.dart';
 import "Models/MatchDTO.dart";
 import "Models/MatchsResponse.dart";
 import "Models/BookedDatesResponse.dart";
+/*
+to run this locally using IISExpress just create a new web site in the IIS config file under <sites>
+C:\Users\jmcfe\OneDrive\Documents\IISExpress\config
+it should look like
+<site name="myclud" id="11">
+                <application path="/" applicationPool="Clr4IntegratedAppPool">
+                    <virtualDirectory path="/" physicalPath="C:\Users\jmcfe\AndroidStudioProjects\login\build\web" />
+                </application>
+                <bindings>
 
+                    <binding protocol="https" bindingInformation="*:44360:localhost" />
+                </bindings>
+            </site>
+
+            then navigate to cd \Program Files (x86)\IIS Express
+            and enter IISEXpress /siteid:11
+
+            then from login/build/web do:
+            flutter build web
+            and nav to https://localhost:44360
+ */
 abstract class BaseAuth {
 
 
@@ -53,11 +73,11 @@ class Auth implements BaseAuth {
 
 class AuthASP  {
   AuthASP();
-  String server = 'localhost';
-  int port = 44330;
+//  String server = 'localhost';
+ // int port = 44330;
   String scheme = 'https';
- // String server = 'landingstennis.com';
-//  int port = 443;
+  String server = 'landingstennis.com';
+  int port = 443;
 
 
   Future<UserResponse> signIn(String userid, String password) async {
@@ -286,6 +306,31 @@ class AuthASP  {
       return resp;
     }
     resp.users = list.map((model) => User.fromJson(model)).toList();
+    return resp;
+  }
+  Future<MatchsResponse>  getAllMatchs() async {
+    MatchsResponse resp = new MatchsResponse();
+    var response;
+    Iterable list;
+
+    var url = new Uri(scheme: scheme,
+      host: server,
+      port: port,
+
+      path: '/api/Account/GetAllMatchs',
+
+    );
+    try {
+      response = await http.get(url);
+      list = json.decode(response.body);
+
+    } catch (error, stacktrace) {
+      print("Exception occured: $error stackTrace: $stacktrace");
+      resp.error = error;
+      return resp;
+    }
+    resp.matches  = list.map((model) => MatchDTO.fromJSON(model)).toList();
+
     return resp;
   }
   Future<MatchsResponse>  getMatchsForMonth(int month,String Name) async {

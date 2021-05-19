@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
+import 'matchsGrid.dart';
 import 'primary_button.dart';
 
 class Intro extends StatelessWidget {
@@ -74,7 +75,30 @@ class Intro extends StatelessWidget {
                       ),
 
                     ),
+                    SizedBox(   //Use of SizedBox
+                      height: 30,
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child:
+                      PrimaryButton(
+                        key: new Key('login'),
+                        text: 'view GRID schedule for  ${  _monthNames[month-1]}',
+                        height: 44.0,
+                        onPressed: () {
 
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(  // transitions to the new route using a platform-specific animation.
+                                  builder: (context) => UserMatchsDataGrid(auth: new AuthASP(),month:month)
+
+
+                              )
+                          );
+                        },
+                      ),
+
+                    ),
                   ],
                 ))));
   }

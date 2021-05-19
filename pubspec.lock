@@ -490,6 +490,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
+  syncfusion_flutter_core:
+    dependency: transitive
+    description:
+      path: "C:\\Program Files (x86)\\Syncfusion\\Essential Studio\\Flutter\\19.1.0.54\\Packages\\flutter_core"
+      relative: false
+    source: path
+    version: "19.1.54"
+  syncfusion_flutter_datagrid:
+    dependency: "direct main"
+    description:
+      path: "C:\\Program Files (x86)\\Syncfusion\\Essential Studio\\Flutter\\19.1.0.54\\Packages\\flutter_datagrid"
+      relative: false
+    source: path
+    version: "19.1.54"
   term_glyph:
     dependency: transitive
     description:

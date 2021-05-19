@@ -43,7 +43,7 @@ class _MyAppState extends State<CalenderHome> {
   String existingBookings;
   List<String> statusdays = [];
   List<User> allusers = [];
-  bool saveButtonEnabled = false;
+  bool saveButtonEnabled = true;
 //  static FileService fileservice = new FileService();
   @override
   void initState()  {
@@ -204,11 +204,12 @@ class _MyAppState extends State<CalenderHome> {
     );
   }
   Widget _SaveBtn(context) {
-    if (viewOnlyMode == true || !saveButtonEnabled)
+    if (viewOnlyMode == true )
       return Container();
-    return InkWell(
+    return ElevatedButton(
+        child: Text("tap to Save Changes", style: TextStyle(fontSize: 20),),
 
-      onTap:  () async{
+        onPressed:  () async{
           States.clear();
            int count = 0;
            States.add(0);
@@ -218,8 +219,6 @@ class _MyAppState extends State<CalenderHome> {
                  States.add( _sequentialDates[i].state);
                  count++;
                }
-
-
            }
            States[0] = count;
 
@@ -235,48 +234,13 @@ class _MyAppState extends State<CalenderHome> {
                    autoHide: Duration(seconds: 2),
                )
                  ..show();
-               setState(() {
-                 saveButtonEnabled = false;
-               });
 
-               /*
-               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                 content: const Text('Saved'),
-                 duration: const Duration(seconds: 1),
-                 action: SnackBarAction(
-                   label: 'ACTION',
-                   onPressed: () { },
-                 ),
-               ));
 
-                */
              }
       },
-      child: Container(
-        alignment: Alignment.center,
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(color: Colors.white),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.white.withOpacity(0.5),
-                offset: Offset(3, 3),
-                blurRadius: 3,
-                spreadRadius: 0,
-              ),
-            ],
-            gradient: LinearGradient(
-              colors: [Colors.black, Colors.black.withOpacity(0.1)],
-              stops: [0.5, 1],
-              begin: Alignment.bottomRight,
-              end: Alignment.topLeft,
-            )
-        ),
-        child: Icon( Icons.save, color: Colors.white,),
-      ),
-    );
+
+      );
+
   }
   // calendar
   Widget _calendarBody() {
@@ -379,7 +343,7 @@ class _MyAppState extends State<CalenderHome> {
                     ),
 
                   ),
-                  Text(" green indicates you are available  (press to change status) ",
+                  Text(" green indicates you are available(tap to change status then press TAP to SAVE CHANGES button) ",
                     style: TextStyle(
                         color: Colors.white),
                     textAlign: TextAlign.center,
@@ -527,7 +491,7 @@ class _MyAppState extends State<CalenderHome> {
                             }
                           }
                           );
-                         saveButtonEnabled = true;
+
                           Navigator.of(context).pop();
                        // }
                       }

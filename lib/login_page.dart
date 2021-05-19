@@ -177,7 +177,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           new TextButton(
             key: new Key('need-account'),
-            child: new Text("Need an account? REGISTER"),
+            child: new Text("new user tap to REGISTER"),
             onPressed: moveToRegister
           ),
           new TextButton(

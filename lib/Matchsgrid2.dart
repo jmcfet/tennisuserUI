@@ -9,6 +9,7 @@ import 'package:http/http.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:login/Models/MatchDTO.dart';
 import 'package:login/Models/UsersResponse.dart';
+import 'Calender/Calender.dart';
 import 'auth.dart';
 import 'Models/user.dart';
 import "Models/AllBookedDatesResp.dart";
@@ -16,25 +17,27 @@ import "Models/AllBookedDatesResp.dart";
 
 
 /// The home page of the application which hosts the datagrid.
-class UserMatchsDataGrid extends StatefulWidget {
+class UserMatchsDataGrid2 extends StatefulWidget {
   /// Creates datagrid with selection option(single/multiple and select/unselect)
   ///
   final AuthASP auth;
   final int month;
 
-  UserMatchsDataGrid({this.auth,this.month } );
+  UserMatchsDataGrid2({this.auth,this.month } );
   int firstDynamicColumn = 2;
   @override
   _UserMatchsState createState() => _UserMatchsState(auth,month);
 }
 
-class _UserMatchsState extends State<UserMatchsDataGrid> {
+class _UserMatchsState extends State<UserMatchsDataGrid2> {
   final AuthASP auth;
   final int month;
   TennisDataGridSource _tennisDataGridSource;
   Map<String,double> columnswidths = Map();
   List<MatchDTO> matchs ;
   List<User> allusers = [];
+  List<Calendar> _sequentialDates;
+  DateTime _currentDateTime = DateTime(DateTime.now().year, 6);
 
   _UserMatchsState(this.auth,this.month);
   @override
@@ -49,7 +52,7 @@ class _UserMatchsState extends State<UserMatchsDataGrid> {
     allusers = resp.users;
     var resp1 = await auth.getAllMatchs();
     AllBookedDatesResponse bookingsresp = await auth.getMonthStatus('6');
-
+    Map<String ,List<int>> subs = new Map<String ,List<int>>();
     matchs = resp1.matches.where((element) => element.month == 6).toList();
     setState(() {
       _tennisDataGridSource = TennisDataGridSource();
@@ -64,78 +67,107 @@ class _UserMatchsState extends State<UserMatchsDataGrid> {
       columnswidths['EMail'] = 200;
       _tennisDataGridSource.columns.add( 'Phone');
       columnswidths['Phone'] = 150;
-//find each day of month that has matchs and add to the columns list
-      matchs.forEach((match) {
-        for(int num=0;num < 4; num++)
-        {
-          if (playersinMonth.isEmpty && match.players[num] != null)
-            playersinMonth.add(match.players[num]);
-          else if (match.players[num] != null && !playersinMonth.contains(match.players[num]))
-            playersinMonth.add(match.players[num]);
+//use the first bookings for month to get the M-W-F for grid headings
+      int day = -1;
+      List<String> statusdays = bookingsresp.datesandstatus[0].status.split(',');
+      _sequentialDates = CustomCalendar().getMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays, startWeekDay: StartWeekDay.monday);
+      for(int day =0;day < _sequentialDates.length;day++)
+      {
+        if (_sequentialDates[day].date.month == month) {
+          if (_sequentialDates[day].date.weekday == 1 ||
+              _sequentialDates[day].date.weekday == 3 ||
+              _sequentialDates[day].date.weekday == 5) {
+            if (!_tennisDataGridSource.columns.contains(
+                _sequentialDates[day].date.weekday.toString())) {
+              _tennisDataGridSource.columns.add(
+                  _sequentialDates[day].date.day.toString());
+              columnswidths[_sequentialDates[day].date.day.toString()] = 30;
+            }
+          }
         }
-        if (!_tennisDataGridSource.columns.contains(match.day.toString())) {
+      }
 
-          _tennisDataGridSource.columns.add( match.day.toString());
-          columnswidths[match.day.toString()] = 30;
+      bookingsresp.datesandstatus.forEach((booking) {
 
-        }
-        last = match;
-      });
-      playersinMonth.forEach((element) {
+
         PlayerData playerinfo = new PlayerData();
-        User user = allusers.where((u) => u.email == element ).single;
-        if (user.phonenum == null)
-          user.phonenum = '1111111111';
-        playerinfo.name = user.Name;
-        playerinfo.email = user.email;
-        playerinfo.phonenum = user.phonenum;
+        playerinfo.matches = new List(32);
+
+        if (booking.user.phonenum == null)
+          booking.user.phonenum = '1111111111';
+        playerinfo.name = booking.user.Name;
+        playerinfo.email = booking.user.email;
+        playerinfo.phonenum = booking.user.phonenum;
         _tennisDataGridSource.allPlayers.add(playerinfo);
-
-
-        int num = 0;
-        _tennisDataGridSource.columns.forEach((column)
+        statusdays = booking.status.split(',');
+        _sequentialDates = CustomCalendar().getMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays, startWeekDay: StartWeekDay.monday);
+        //loop thru all the M-W-F for month states
+        int col = 0;
+        for(int day =0;day < _sequentialDates.length;day++)
         {
-          int columnNum =  int.tryParse (column) ?? -1;  //is this a predefined column (Name,email)
-          if (columnNum >= 0) {
-            List<MatchDTO> matchsforday = matchs.where((element) =>
-            element.day.toString() == column).toList();
-            int iNumMatch = 0;
-            //we are processing member by member . look thru the matchs for this day and see if member is
-            //in the match and if they are the captain
-            matchsforday.forEach((matchforday) {
-              iNumMatch++;
-              for (int ii = 0; ii < 4; ii++) {
-                User user = allusers.where((u) => u.email == matchforday.players[ii] ).single;
-                if (user.Name == playerinfo.name) {
-                  playerinfo.matches[columnNum] = iNumMatch;
-                  if (playerinfo.name == matchforday.Captain) {
-                    playerinfo.CaptainthatDay[columnNum] = 1;
+          if (_sequentialDates[day].date.month == month) {
+
+            if (_sequentialDates[day].date.weekday == 1 ||
+                _sequentialDates[day].date.weekday == 3 ||
+                _sequentialDates[day].date.weekday == 5) {
+                  if (_sequentialDates[day].state == 1)
+                    playerinfo.matches[col] = 9;
+                  if (_sequentialDates[day].state == 0) {
+                    findMatch(_sequentialDates[day].date.day,playerinfo,col);
+
                   }
 
                 }
-              }
-            });
+
+            }
+            col++;
           }
-        });
+
+
         _tennisDataGridSource.playersinfo.add(playerinfo);
       });
     });
     return ;
 
   }
+findMatch(int day,PlayerData playerinfo,int columnNum){
 
+  List<MatchDTO> matchsforday = matchs.where((element) =>
+  element.day == day).toList();
+  int iNumMatch = 0;
+  bool bFound = false;
+  //we are processing member by member . look thru the matchs for this day and see if member is
+  //in the match and if they are the captain
+  matchsforday.forEach((matchforday) {
+    iNumMatch++;
+    for (int ii = 0; ii < 4; ii++) {
+      User user = allusers.where((u) => u.email == matchforday.players[ii] ).single;
+      if (user.Name == playerinfo.name) {
+        bFound = true;
+        playerinfo.matches[columnNum] = iNumMatch;
+        if (playerinfo.name == matchforday.Captain) {
+          playerinfo.CaptainthatDay[columnNum] = 1;
+        }
+
+      }
+    }
+    if (!bFound)  //player was left out as not enough players
+      playerinfo.matches[columnNum] = 8;
+  });
+
+
+}
   @override
   Widget build(BuildContext context) {
     if (_tennisDataGridSource == null)
       return Container();
     return Scaffold(
-      backgroundColor: Colors.black,
+        backgroundColor: Colors.black,
         appBar: AppBar(
           title: Text('Match info for June'),
         ),
         body:  SfDataGrid(
-            headerRowHeight: 40,
-            rowHeight: 30,
+
             source: _tennisDataGridSource,
             columns: _tennisDataGridSource.columns
                 .map<GridColumn>((columnName) => GridTextColumn(
@@ -228,6 +260,7 @@ class TennisDataGridSource extends DataGridSource {
 
         }).toList());
   }
+
 }
 
 class PlayerData{

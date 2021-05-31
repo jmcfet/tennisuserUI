@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Calender/CalenderHome.dart';
+import 'Matchsgrid2.dart';
 import 'auth.dart';
 import 'globals.dart';
 import 'dart:async';
@@ -8,16 +9,40 @@ import 'dart:convert';
 import 'dart:io';
 import 'matchsGrid.dart';
 import 'primary_button.dart';
-
-class Intro extends StatelessWidget {
-  Intro({this.auth});
+class Intro extends StatefulWidget {
+  Intro({Key key,  this.auth}) : super(key: key);
 
   final AuthASP auth;
+
+  @override
+  _IntroPageState createState() => new _IntroPageState();
+}
+
+
+class _IntroPageState extends State<Intro> {
+
+
+  static final formKey = new GlobalKey<FormState>();
+  bool bFroozen;
+  void initState() {
+
+
+    super.initState();
+    getDBState();
+  }
+  Future <void> getDBState( ) async {
+
+       bool btemp =     await widget.auth.isDBFrozen();
+       btemp = false;
+      setState(() => bFroozen = btemp);
+      return;
+  }
   final List<String> _monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   @override
   Widget build(BuildContext context) {
-    final int month =  DateTime.now().month;
+  //  final int month =  DateTime.now().month;
+    final int month = 6;
     return MaterialApp(
 
            debugShowCheckedModeBanner: false,
@@ -36,7 +61,7 @@ class Intro extends StatelessWidget {
                     ),
                     SizedBox(
                       width: double.infinity,
-                      child: PrimaryButton(
+                      child: !bFroozen ? PrimaryButton(
                         text: 'schedule your matchs for  ${  _monthNames[month]}',
                         height: 44.0,
                         onPressed: () {
@@ -49,7 +74,7 @@ class Intro extends StatelessWidget {
                               )
                           );
                         },
-                      ),
+                      ) : Container(),
                     ),
                     SizedBox(   //Use of SizedBox
                       height: 30,
@@ -75,6 +100,7 @@ class Intro extends StatelessWidget {
                       ),
 
                     ),
+
                     SizedBox(   //Use of SizedBox
                       height: 30,
                     ),
@@ -90,7 +116,7 @@ class Intro extends StatelessWidget {
                           Navigator.push(
                               context,
                               MaterialPageRoute(  // transitions to the new route using a platform-specific animation.
-                                  builder: (context) => UserMatchsDataGrid(auth: new AuthASP(),month:month)
+                                  builder: (context) => UserMatchsDataGrid2(auth: new AuthASP(),month:month)
 
 
                               )
@@ -99,6 +125,7 @@ class Intro extends StatelessWidget {
                       ),
 
                     ),
+
                   ],
                 ))));
   }

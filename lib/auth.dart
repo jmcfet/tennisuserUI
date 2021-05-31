@@ -6,6 +6,8 @@ import 'package:http/http.dart';
 import 'package:login/Models/BookDates.dart';
 import 'package:login/Models/UserInfo.dart';
 
+import 'Models/AllBookedDatesResp.dart';
+import 'Models/PlayersinfoandBookedDate.dart';
 import 'Models/UsersResponse.dart';
 import 'globals.dart';
 import 'Models/user.dart';
@@ -35,6 +37,8 @@ it should look like
             then from login/build/web do:
             flutter build web
             and nav to https://localhost:44360
+            then to move to production winhost use Fillezilla and point it to ftp.w28.wh-2.com
+
  */
 abstract class BaseAuth {
 
@@ -73,11 +77,13 @@ class Auth implements BaseAuth {
 
 class AuthASP  {
   AuthASP();
-//  String server = 'localhost';
- // int port = 44330;
+ // String server = 'localhost';
+//  int port = 44397;
   String scheme = 'https';
-  String server = 'landingstennis.com';
+ // String scheme = 'http';
+ String server = 'landingstennis.com';
   int port = 443;
+  String api = '';
 
 
   Future<UserResponse> signIn(String userid, String password) async {
@@ -129,7 +135,7 @@ class AuthASP  {
 
 
     catch (e){
-      resp.error = e.message;
+      resp.error = 'login failed';
     }
     return   resp ;
 
@@ -149,7 +155,7 @@ class AuthASP  {
         host: server,
         port: port,
         //      host: targethost,
-        path: "/api/Account/Register");
+        path: "api/Account/Register");
 
     try {
       // final request = await client.p;
@@ -460,5 +466,31 @@ class AuthASP  {
     return true;
 
   }
+  Future<AllBookedDatesResponse>  getMonthStatus(String month) async {
+    AllBookedDatesResponse resp = new AllBookedDatesResponse();
+    var response;
+    Iterable list;
+    var queryParameters1 = {
+      'month': month
 
+    };
+    var url = new Uri(scheme: scheme,
+        host: server,
+        port:port,
+
+        path: '/api/Account/GetMonthStatus',
+        queryParameters:queryParameters1
+    );
+    try {
+      response = await http.get(url);
+      list = json.decode(response.body);
+
+    } catch (error, stacktrace) {
+      print("Exception occured: $error stackTrace: $stacktrace");
+      resp.error = error;
+      return resp;
+    }
+    resp.datesandstatus = list.map((model) => PlayersinfoandBookedDates.fromJson(model)).toList();
+    return resp;
+  }
 }

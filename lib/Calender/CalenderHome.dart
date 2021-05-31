@@ -69,11 +69,7 @@ class _MyAppState extends State<CalenderHome> {
   void dispose() {
     super.dispose();
   }
-  Future <bool> getDBState( ) async {
- //   viewOnlyMode =   await auth.isDBFrozen();
-    return true;
 
-  }
   Future <String> getuserinfo(int month ) async {
     MatchsResponse resp =   await auth.getMatchsForMonth(month, Globals.user.email);
     matches = resp.matches;
@@ -699,15 +695,18 @@ class _MyAppState extends State<CalenderHome> {
   }
   List<Widget> getPlayerinfoforMatch(String email){
     List<Widget> rowcontent = [];
-
+    var number = '';
+    var user = allusers.where((u) => u.email == email ).single;
+    if (user.phonenum != null)
+      number = user.phonenum;
     rowcontent.add(Expanded(
     flex:1,
-    child: Text( (allusers.where((u) => u.email == email ).single).Name)
+    child: Text( user.Name)
     )
     );
     rowcontent.add(Expanded(
         flex:1,
-        child: Text( email)
+        child: Text( email + ' ' + number)
     )
     );
     return rowcontent;

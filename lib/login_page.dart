@@ -27,6 +27,7 @@ class _LoginPageState extends State<LoginPage> {
   User _user = new User();
 
   FormType _formType = FormType.login;
+  bool isLoading = false;
   String _authHint = '';
 
   void initState() {
@@ -46,7 +47,11 @@ class _LoginPageState extends State<LoginPage> {
   
   void validateAndSubmit() async {
     if (validateAndSave()) {
+      setState(() {
+        isLoading = true;
+      });
       if (_formType == FormType.login) {
+
         UserResponse resp = await widget.auth.signIn(
             _user.userid, _user.password);
 
@@ -58,6 +63,7 @@ class _LoginPageState extends State<LoginPage> {
         } else {
           setState(() {
             _authHint = resp.error;
+            isLoading = false;
           });
         }
       } else {
@@ -71,6 +77,7 @@ class _LoginPageState extends State<LoginPage> {
           }
           setState(() {
             _authHint = resp.error;
+            isLoading = false;
           });
         }
       }
@@ -108,6 +115,7 @@ class _LoginPageState extends State<LoginPage> {
       _formType == FormType.register? padded(child: new TextFormField(
         key: new Key('Name (John Smith)'),
         decoration: new InputDecoration(labelText: 'Name ' ),
+   //     initialValue: 'first and last names ',
         autocorrect: false,
     //    validator: (val) => validateEmail(val),
         onSaved: (val) => _user.Name = val,
@@ -119,9 +127,16 @@ class _LoginPageState extends State<LoginPage> {
         validator: (val) => validateEmail(val),
         onSaved: (val) => _user.email = val,
       )):Container(),
+      _formType == FormType.register? padded(child: new TextFormField(
+        key: new Key('Name (John Smith)'),
+        decoration: new InputDecoration(labelText: 'Phone number '),
+        autocorrect: false,
+        validator: (val) => validateMobile(val),
+        onSaved: (val) => _user.phonenum = val,
+      )):Container(),
       padded(child: new TextFormField(
         key: new Key('password'),
-        decoration: new InputDecoration(labelText: 'Password (must be 6 characters)'),
+        decoration: new InputDecoration(labelText: 'Password (must be at least 6 characters)'),
         obscureText: true,
         autocorrect: false,
         validator: (val) => validatepassword(val),
@@ -152,6 +167,18 @@ class _LoginPageState extends State<LoginPage> {
       return null;
     }
   }
+  String validateMobile(String value) {
+    String patttern = r'(^[0-9]*$)';
+    RegExp regExp = new RegExp(patttern);
+    if (value.length == 0) {
+      return "Mobile is Required";
+    } else if (value.length != 10) {
+      return "Mobile number must 10 digits";
+    } else if (!regExp.hasMatch(value)) {
+      return "Mobile Number must be digits";
+    }
+    return null;
+  }
   String confirmPassword(value)
   {
     if (_user.password != value)
@@ -166,43 +193,56 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   List<Widget> submitWidgets() {
+    List<Widget> buttons = [];
     switch (_formType) {
       case FormType.login:
-        return [
+        buttons.add(
           new PrimaryButton(
             key: new Key('login'),
             text: 'Login',
             height: 44.0,
             onPressed: validateAndSubmit
-          ),
-          new TextButton(
+          ));
+        buttons.add(new TextButton(
             key: new Key('need-account'),
             child: new Text("new user tap to REGISTER"),
             onPressed: moveToRegister
-          ),
-          new TextButton(
+          ));
+        buttons.add(new TextButton(
               key: new Key('neededpassword'),
               child: new Text("Forgot password"),
               onPressed: forgotPassword
-          ),
-
-        ];
+          ));
+      break;
       case FormType.register:
-        return [
+        buttons.add(
           new PrimaryButton(
             key: new Key('register'),
             text: 'Create an Club account',
             height: 44.0,
             onPressed: validateAndSubmit
-          ),
-          new TextButton(
+          ));
+        buttons.add(new TextButton(
             key: new Key('need-login'),
             child: new Text("Have an account? LOGIN"),
             onPressed: moveToLogin
-          ),
-        ];
+          ));
+
     }
-    return null;
+    buttons.add(
+        isLoading
+            ? Center(
+          child: CircularProgressIndicator(),
+        ):
+        Container());
+    return buttons;
+  }
+  Widget controlWaitIndicator(){
+    return isLoading
+    ? Center(
+        child: CircularProgressIndicator(),
+    ):
+    Container();
   }
 
   Widget hintText(color) {
@@ -281,7 +321,7 @@ class _LoginPageState extends State<LoginPage> {
                         key: formKey,
                         child: new Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: usernameAndPassword() + submitWidgets(),
+                          children: usernameAndPassword() + submitWidgets() ,
                         )
                     )
                 ),
@@ -302,6 +342,7 @@ class _LoginPageState extends State<LoginPage> {
       child: child,
     );
   }
+
   void forgotPassword() async{
     var _formkey = new GlobalKey<FormState>();
     AwesomeDialog dialog;

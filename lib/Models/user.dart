@@ -15,11 +15,12 @@ class User{
   String Name;
   String userid;
   String email;
+  String phonenum;
   String password;
   int isFrozen;
 
 
-  User({this.id,this.Name,this.email,this.password,this.userid});
+  User({this.id,this.Name,this.email,this.password,this.userid,this.phonenum});
 
   /// A necessary factory constructor for creating a new User instance
   /// from a map. Pass the map to the generated `_$UserFromJson()` constructor.

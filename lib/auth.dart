@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart';
 import 'package:login/Models/BookDates.dart';
 import 'package:login/Models/UserInfo.dart';
+import 'package:login/Models/logininfo.dart';
 
 import 'Models/AllBookedDatesResp.dart';
 import 'Models/PlayersinfoandBookedDate.dart';
@@ -78,7 +79,9 @@ class Auth implements BaseAuth {
 class AuthASP  {
   AuthASP();
  // String server = 'localhost';
-//  int port = 44397;
+ // int port = 44340;
+//  int port = 52175;
+
   String scheme = 'https';
  // String scheme = 'http';
  String server = 'landingstennis.com';
@@ -130,6 +133,75 @@ class AuthASP  {
           resp.error = response.statusCode.toString() + ' ' + response.body;
           return resp;
         }
+
+    }
+
+
+    catch (e){
+      resp.error = 'login failed';
+    }
+    return   resp ;
+
+  }
+
+  Future<UserResponse> login(String userid, String password) async {
+
+
+    UserResponse resp = new UserResponse();
+
+    loginInfo log = new loginInfo();
+    log.Username = userid;
+    log.Password = password;
+    String js;
+    js = jsonEncode(log);
+    //we are using asp.net Identity for login/registration. the first time we
+    //login we must obtain an OAuth token which we obtain by calling the Token endpoint
+    //and pass in the email and password that the user registered with.
+    try {
+
+      var gettokenuri = new Uri(scheme: scheme,
+          host: server,
+          port: port,
+          //      host: targethost,
+          path: 'api/Account/Login');
+      //      if (server == 'localhost')
+      //        gettokenuri.port = port;
+      //the user name and password along with the grant type are passed the body as text.
+      //and the contentype must be x-www-form-urlencoded
+      var loginInfo = 'UserName=' + userid + '&Password=' + password ;
+
+      var response = await http
+          .post(
+          gettokenuri,
+          headers: {"Content-Type": "application/json"},
+          body: js
+      );
+
+      if (response.statusCode == 200) {
+        resp.error = '200';
+        final json = jsonDecode(response.body);
+        Globals.token = json['token'] as String;
+        /*
+        String authorization =  'Bearer ' + Globals.token;
+
+          var url = new Uri(scheme: scheme,
+              host: server,
+              port: port,
+              path: 'weatherforecast',
+
+          );
+
+
+          response = await http.get(url,
+              headers: {HttpHeaders.authorizationHeader: authorization});
+
+         */
+      }
+      else {
+        //this call will fail if the security stamp for user is null
+        resp.error = response.statusCode.toString() + ' ' + response.body;
+        return resp;
+      }
 
     }
 
@@ -265,7 +337,7 @@ class AuthASP  {
 
     };
     //all calls to the server are now secure so must pass the oAuth token or our call will be rejected
-    String authorization = 'Bearer ' + Globals.token;
+    String authorization =  'Bearer ' + Globals.token;
     Map usermap;
     try {
       var url = new Uri(scheme: scheme,
@@ -368,7 +440,7 @@ class AuthASP  {
 
     } catch (error, stacktrace) {
       print("Exception occured: $error stackTrace: $stacktrace");
-      resp.error = error;
+      resp.matches = null;
       return resp;
 
     }
@@ -399,7 +471,7 @@ class AuthASP  {
 
     } catch (error, stacktrace) {
       print("Exception occured: $error stackTrace: $stacktrace");
-      resp.error = error;
+      resp.status = null;
       return resp;
     }
     if (Datesmap == null)     //new user

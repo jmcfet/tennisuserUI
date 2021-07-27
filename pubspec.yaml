@@ -26,8 +26,7 @@ dependencies:
 
   http: ^0.12.0+2
   awesome_dialog: ^2.0.0
-  syncfusion_flutter_datagrid:
-    path: C:\Program Files (x86)\Syncfusion\Essential Studio\Flutter\19.1.0.54\Packages\flutter_datagrid
+  syncfusion_flutter_datagrid: ^19.1.58
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.1

@@ -14,10 +14,43 @@ class CustomCalendar{
     }
     return false;
   }
+  List<Calendar> getJustMonthCalendar(int month, int year, List<String> existingstatus, {StartWeekDay startWeekDay = StartWeekDay.sunday}) {
+    // validate
+    if (year == null || month == null || month < 1 ||
+        month > 12) throw ArgumentError('Invalid year or month');
 
-  /// get the month calendar
+    List<Calendar> calendar = [];
+    // used for previous and next month's calendar days
+    int otherYear;
+    int otherMonth;
+    int leftDays;
+    bool bNewUser = false;
+    // get no. of days in the month
+    // month-1 because _monthDays starts from index 0 and month starts from 1
+    int totalDays = _monthDays[month - 1];
+    // if this is a leap year and the month is february, increment the total days by 1
+    if(_isLeapYear(year) && month == DateTime.february) totalDays++;
+    if (existingstatus.length == 0)    //a new user has no day info so assume always available
+      bNewUser = true;
+    // get this month's calendar days
+    for(int i=0; i<totalDays; i++){
+      int state1 = bNewUser == true ? 0 : int.parse(existingstatus[i+1]);
+      calendar.add(
+        Calendar(
+          // i+1 because day starts from 1 in DateTime class
+            date: DateTime(year, month, i+1),
+            thisMonth: true,
+            state: state1
+        ),
+      );
+    }
+    return calendar;
+  }
+
+
+    /// get the month calendar
   /// month is between from 1-12 (1 for January and 12 for December)
-  List<Calendar> getMonthCalendar(int month, int year, List<String> existingstatus, {StartWeekDay startWeekDay = StartWeekDay.sunday}){
+  List<Calendar> getMonthCalendar(int month, int year, List<String> existingstatus,int defaultStatus, {StartWeekDay startWeekDay = StartWeekDay.sunday}){
 
     // validate
     if(year == null || month == null || month < 1 || month > 12) throw ArgumentError('Invalid year or month');
@@ -38,7 +71,7 @@ class CustomCalendar{
        bNewUser = true;
     // get this month's calendar days
     for(int i=0; i<totalDays; i++){
-      int state1 = bNewUser == true ? 0 : int.parse(existingstatus[i+1]);
+      int state1 = bNewUser == true ? defaultStatus : int.parse(existingstatus[i+1]);
       calendar.add(
         Calendar(
           // i+1 because day starts from 1 in DateTime class
@@ -113,7 +146,9 @@ class CustomCalendar{
     return calendar;
 
   }
+
 }
+
 
 class Calendar{
   final DateTime date;

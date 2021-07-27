@@ -44,6 +44,7 @@ class _MyAppState extends State<CalenderHome> {
   List<String> statusdays = [];
   List<User> allusers = [];
   bool saveButtonEnabled = true;
+  int defaultStatus = 0;
 //  static FileService fileservice = new FileService();
   @override
   void initState()  {
@@ -106,8 +107,8 @@ class _MyAppState extends State<CalenderHome> {
               color: Colors.black,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: (_currentView == CalendarViews.dates) ? _datesView()
-                : (_currentView == CalendarViews.months) ? _showMonthsList() : _yearsView(midYear ?? _currentDateTime.year)
+            child:  _datesView()
+
         ),
 
       ),
@@ -116,9 +117,9 @@ class _MyAppState extends State<CalenderHome> {
 
   // dates view
   Widget _datesView(){
-    String title = Globals.user.Name + ' Matches for '  + _monthNames[_currentDateTime.month-1] + ' ' + _currentDateTime.year.toString();
+    String title = Globals.user.Name + ' ' +  _monthNames[_currentDateTime.month-1] + ' ' ;
     if (!viewOnlyMode)
-     title = Globals.user.Name + ' schedule matchs for  '  + _monthNames[_currentDateTime.month-1] + ' ' + _currentDateTime.year.toString();
+     title = Globals.user.Name   + ' ' + _monthNames[_currentDateTime.month-1] + ' ' ;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -144,6 +145,90 @@ class _MyAppState extends State<CalenderHome> {
             // next month button
             _toggleBtn(true),
           ],
+        ),
+        Row(
+          children: [
+            Text(
+                'Available ',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+
+            ),
+            ConstrainedBox(
+              constraints: BoxConstraints.tightFor(width: 30, height: 30),
+              child:
+              ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  defaultStatus = 0;
+                  _getCalendar();
+                } );
+              },
+              style: ElevatedButton.styleFrom(
+                  primary: Colors.green, // background
+                  shape: new RoundedRectangleBorder(
+                      borderRadius: new BorderRadius.circular(30.0),
+
+                  )
+                )
+              )
+            ),
+            Text(
+              'Sub ',
+              style: TextStyle(
+                color: Colors.white,
+              ),
+
+            ),
+            ConstrainedBox(
+                constraints: BoxConstraints.tightFor(width: 30, height: 30),
+                child:
+                ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        defaultStatus = 1;
+                        _getCalendar();
+                      } );
+                    },
+                    style: ElevatedButton.styleFrom(
+                        primary: Colors.yellow, // background
+                        shape: new RoundedRectangleBorder(
+                          borderRadius: new BorderRadius.circular(30.0),
+
+                        )
+                    )
+                )
+            ),
+            Text(
+              'Not Available ',
+              style: TextStyle(
+                color: Colors.white,
+              ),
+
+            ),
+            ConstrainedBox(
+                constraints: BoxConstraints.tightFor(width: 30, height: 30),
+                child:
+                ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        defaultStatus = 2;
+                        _getCalendar();
+                      } );
+                    },
+                    style: ElevatedButton.styleFrom(
+                        primary: Colors.grey, // background
+                        shape: new RoundedRectangleBorder(
+                          borderRadius: new BorderRadius.circular(30.0),
+
+                        )
+                    )
+                )
+            ),
+
+          ],
+
         ),
    //     SizedBox(height: 20,),
         Divider(color: Colors.white,),
@@ -203,7 +288,7 @@ class _MyAppState extends State<CalenderHome> {
     if (viewOnlyMode == true )
       return Container();
     return ElevatedButton(
-        child: Text("tap to Save Changes", style: TextStyle(fontSize: 20),),
+        child: Text("Save Changes", style: TextStyle(fontSize: 20),),
 
         onPressed:  () async{
           States.clear();
@@ -330,16 +415,8 @@ class _MyAppState extends State<CalenderHome> {
           children: [
             Row(
                 children: [
-                  Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                        color: Colors.green,
-                        shape: BoxShape.circle
-                    ),
 
-                  ),
-                  Text(" green indicates you are available(tap to change status then press TAP to SAVE CHANGES button) ",
+                  Text("tap to change default status then press SAVE CHANGES button) ",
                     style: TextStyle(
                         color: Colors.white),
                     textAlign: TextAlign.center,
@@ -656,7 +733,7 @@ class _MyAppState extends State<CalenderHome> {
 
   // get calendar for current month
   void _getCalendar(){
-    _sequentialDates = CustomCalendar().getMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays, startWeekDay: StartWeekDay.monday);
+    _sequentialDates = CustomCalendar().getMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays,defaultStatus, startWeekDay: StartWeekDay.monday);
   }
 
   // show months list
@@ -712,51 +789,23 @@ class _MyAppState extends State<CalenderHome> {
     return rowcontent;
 
   }
-  // years list views
-  Widget _yearsView(int midYear){
-    return Column(
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            _toggleBtn(false),
-            Spacer(),
-            _toggleBtn(true),
-          ],
-        ),
-        Expanded(
-          child: GridView.builder(
-              shrinkWrap: true,
-              itemCount: 9,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-              ),
-              itemBuilder: (context, index){
-                int thisYear;
-                if(index < 4){
-                  thisYear = midYear - (4 - index);
-                }
-                else if(index > 4){
-                  thisYear = midYear + (index - 4);
-                }
-                else{
-                  thisYear = midYear;
-                }
-                return ListTile(
-                  onTap: (){
-                    _currentDateTime = DateTime(thisYear, _currentDateTime.month);
-                    _getCalendar();
-                    setState(() => _currentView = CalendarViews.months);
-                  },
-                  title: Text(
-                    '$thisYear',
-                    style: TextStyle(fontSize: 18, color: (thisYear == _currentDateTime.year) ? Colors.yellow : Colors.white),
-                  ),
-                );
-              }
-          ),
-        ),
-      ],
-    );
+  Widget makeButton(currentColor){
+    return
+      ConstrainedBox(
+        constraints: BoxConstraints.tightFor(width: 40, height: 40),
+        child:
+          ElevatedButton(
+
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+                primary: Colors.red, // background
+              shape: new RoundedRectangleBorder(
+                borderRadius: new BorderRadius.circular(30.0),
+
+              )
+            )
+        )
+      );
+
   }
 }

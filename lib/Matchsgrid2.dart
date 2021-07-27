@@ -31,13 +31,15 @@ class UserMatchsDataGrid2 extends StatefulWidget {
 
 class _UserMatchsState extends State<UserMatchsDataGrid2> {
   final AuthASP auth;
-  final int month;
+  int month;
+  int currentmonth = 7;
+  bool bLoggedIn = true;
   TennisDataGridSource _tennisDataGridSource;
   Map<String,double> columnswidths = Map();
   List<MatchDTO> matchs ;
   List<User> allusers = [];
-  List<Calendar> _sequentialDates;
-  DateTime _currentDateTime = DateTime(DateTime.now().year, 6);
+  List<Calendar> _daysinMonth;
+
 
   _UserMatchsState(this.auth,this.month);
   @override
@@ -48,14 +50,15 @@ class _UserMatchsState extends State<UserMatchsDataGrid2> {
   }
 
   Future <void> getUsersandInitGrid( ) async {
+    DateTime _currentDateTime = DateTime(DateTime.now().year, currentmonth);
     UsersResponse resp =    await auth.getUsers();
     allusers = resp.users;
     var resp1 = await auth.getAllMatchs();
-    AllBookedDatesResponse bookingsresp = await auth.getMonthStatus('6');
+    AllBookedDatesResponse bookingsresp = await auth.getMonthStatus(currentmonth.toString());
     Map<String ,List<int>> subs = new Map<String ,List<int>>();
-    matchs = resp1.matches.where((element) => element.month == 6).toList();
+    matchs = resp1.matches.where((element) => element.month == currentmonth).toList();
     setState(() {
-      _tennisDataGridSource = TennisDataGridSource();
+      _tennisDataGridSource = TennisDataGridSource(bLoggedIn);
       _tennisDataGridSource.matchs = matchs;
       _tennisDataGridSource.columns = [];
       MatchDTO last = null;
@@ -63,25 +66,27 @@ class _UserMatchsState extends State<UserMatchsDataGrid2> {
       int columnNum = 0;
       _tennisDataGridSource.columns.add( 'Name');
       columnswidths['Name'] = 150;
-      _tennisDataGridSource.columns.add( 'EMail');
-      columnswidths['EMail'] = 200;
-      _tennisDataGridSource.columns.add( 'Phone');
-      columnswidths['Phone'] = 150;
+      if (bLoggedIn) {
+        _tennisDataGridSource.columns.add('EMail');
+        columnswidths['EMail'] = 200;
+        _tennisDataGridSource.columns.add('Phone');
+        columnswidths['Phone'] = 150;
+      }
 //use the first bookings for month to get the M-W-F for grid headings
       int day = -1;
       List<String> statusdays = bookingsresp.datesandstatus[0].status.split(',');
-      _sequentialDates = CustomCalendar().getMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays, startWeekDay: StartWeekDay.monday);
-      for(int day =0;day < _sequentialDates.length;day++)
+      _daysinMonth = CustomCalendar().getJustMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays, startWeekDay: StartWeekDay.monday);
+      for(int day =0;day < _daysinMonth.length;day++)
       {
-        if (_sequentialDates[day].date.month == month) {
-          if (_sequentialDates[day].date.weekday == 1 ||
-              _sequentialDates[day].date.weekday == 3 ||
-              _sequentialDates[day].date.weekday == 5) {
+        if (_daysinMonth[day].date.month == currentmonth) {
+          if (_daysinMonth[day].date.weekday == 1 ||
+              _daysinMonth[day].date.weekday == 3 ||
+              _daysinMonth[day].date.weekday == 5) {
             if (!_tennisDataGridSource.columns.contains(
-                _sequentialDates[day].date.weekday.toString())) {
+                _daysinMonth[day].date.day.toString())) {
               _tennisDataGridSource.columns.add(
-                  _sequentialDates[day].date.day.toString());
-              columnswidths[_sequentialDates[day].date.day.toString()] = 30;
+                  _daysinMonth[day].date.day.toString());
+              columnswidths[_daysinMonth[day].date.day.toString()] = 50;
             }
           }
         }
@@ -92,7 +97,7 @@ class _UserMatchsState extends State<UserMatchsDataGrid2> {
 
         PlayerData playerinfo = new PlayerData();
         playerinfo.matches = new List(32);
-
+        bool bActivePlayer = false;
         if (booking.user.phonenum == null)
           booking.user.phonenum = '1111111111';
         playerinfo.name = booking.user.Name;
@@ -100,31 +105,34 @@ class _UserMatchsState extends State<UserMatchsDataGrid2> {
         playerinfo.phonenum = booking.user.phonenum;
         _tennisDataGridSource.allPlayers.add(playerinfo);
         statusdays = booking.status.split(',');
-        _sequentialDates = CustomCalendar().getMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays, startWeekDay: StartWeekDay.monday);
+        _daysinMonth = CustomCalendar().getJustMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays, startWeekDay: StartWeekDay.monday);
         //loop thru all the M-W-F for month states
         int col = 0;
-        for(int day =0;day < _sequentialDates.length;day++)
+
+        for(int day =0;day < _daysinMonth.length;day++)
         {
-          if (_sequentialDates[day].date.month == month) {
+      //    if (_daysinMonth[day].date.month == month) {
 
-            if (_sequentialDates[day].date.weekday == 1 ||
-                _sequentialDates[day].date.weekday == 3 ||
-                _sequentialDates[day].date.weekday == 5) {
-                  if (_sequentialDates[day].state == 1)
+            if (_daysinMonth[day].date.weekday == 1 ||
+                _daysinMonth[day].date.weekday == 3 ||
+                _daysinMonth[day].date.weekday == 5) {
+                  if (_daysinMonth[day].state == 1) {
+                    bActivePlayer = true;
                     playerinfo.matches[col] = 9;
-                  if (_sequentialDates[day].state == 0) {
-                    findMatch(_sequentialDates[day].date.day,playerinfo,col);
-
+                  }
+                  if (_daysinMonth[day].state == 0) {
+                    findMatch(_daysinMonth[day].date.day,playerinfo,col);
+                    bActivePlayer = true;
                   }
 
                 }
 
-            }
+          //  }
             col++;
           }
 
-
-        _tennisDataGridSource.playersinfo.add(playerinfo);
+          if (bActivePlayer)
+            _tennisDataGridSource.playersinfo.add(playerinfo);
       });
     });
     return ;
@@ -164,9 +172,18 @@ findMatch(int day,PlayerData playerinfo,int columnNum){
     return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: Text('Match info for June'),
+          title: Text(' July Matchs  Blue = Captain '),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.play_circle_filled),
+              onPressed: () {
+                createPDF();;
+              },
+            )],
         ),
         body:  SfDataGrid(
+            headerRowHeight: 40,
+            rowHeight: 40,
 
             source: _tennisDataGridSource,
             columns: _tennisDataGridSource.columns
@@ -192,7 +209,9 @@ findMatch(int day,PlayerData playerinfo,int columnNum){
 
   }
 }
+createPDF(){
 
+}
 class TennisDataGridSource extends DataGridSource {
   List<String> columns = [];
 
@@ -200,24 +219,31 @@ class TennisDataGridSource extends DataGridSource {
   List<DataGridRow> _matchData = [];
   List<PlayerData> playersinfo = [];
   List<PlayerData> allPlayers = [];
-  TennisDataGridSource();
+  bool bLoggedIn;
+  TennisDataGridSource(this.bLoggedIn);
 
   @override
   List<DataGridRow> get rows =>
       playersinfo.map<DataGridRow>((e) {
         List<DataGridCell> cells = [];
         cells.add(DataGridCell<String>(columnName: 'Name', value: e.name),);
-        cells.add(DataGridCell<String>(
-            columnName: 'EMail', value: e.email));
-        cells.add(DataGridCell<String>(
-            columnName: 'Phone', value: e.phonenum));
+        if (bLoggedIn){
+               cells.add(DataGridCell<String>(
+                   columnName: 'EMail', value: e.email));
+              cells.add(DataGridCell<String>(
+                  columnName: 'Phone', value: e.phonenum));
+        }
+
         this.columns.forEach((element) {
           //only the dynamic columns have a numeric value
           int columnNum = int.tryParse(element) ?? -1;
-          if (columnNum != -1)
+          if (columnNum != -1){
+            columnNum =  columnNum -1;     //old zero offset
             cells.add(DataGridCell<String>(
 
                 columnName: element, value: e.matches[columnNum].toString()));
+          }
+
         });
 
         return DataGridRow(
@@ -233,7 +259,7 @@ class TennisDataGridSource extends DataGridSource {
             int columnNum = int.tryParse(dataGridCell.columnName) ?? -1;
             if (columnNum != -1) {
               PlayerData data = allPlayers.where((element) => element.name == playerName).single;;
-              if (data.CaptainthatDay[columnNum] == 1)
+              if (data.CaptainthatDay[columnNum-1] == 1)
                 return Colors.blue;
 
             }
@@ -241,8 +267,14 @@ class TennisDataGridSource extends DataGridSource {
               return Colors.grey;
             return Colors.transparent;
           }
-          var tt =   dataGridCell.value != '-1' ? dataGridCell.value : '-';
+          String content = dataGridCell.value;
 
+          if (dataGridCell.value == '9' )
+            content = 'S';
+          if (dataGridCell.value == '8' )
+            content = 'A';
+          if (dataGridCell.value == "null" )
+            content = '-';
           return Container(
               color: getColor(),
               alignment:
@@ -251,7 +283,7 @@ class TennisDataGridSource extends DataGridSource {
               child: Center(
                   child:Text(
 
-                    dataGridCell.value != '-1' ? dataGridCell.value : '-',
+                    content,
                     textAlign:TextAlign.center,
                     overflow: TextOverflow.ellipsis,
 

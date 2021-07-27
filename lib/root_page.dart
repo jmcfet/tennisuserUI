@@ -7,8 +7,9 @@ import "package:login/Calender/CalenderHome.dart";
 
 
 class RootPage extends StatefulWidget {
-  RootPage({Key key, this.auth}) : super(key: key);
+  RootPage({Key key, this.auth,this.userid}) : super(key: key);
   final AuthASP auth;
+  String userid;
 
   @override
   State<StatefulWidget> createState() => new _RootPageState(auth);
@@ -34,7 +35,7 @@ class _RootPageState extends State<RootPage> {
   }
 
   void _updateAuthStatus(AuthStatus status)  {
-
+//set correct state for build
     setState(() {
       authStatus = status;
     });
@@ -44,11 +45,12 @@ class _RootPageState extends State<RootPage> {
   Widget build(BuildContext context)  {
     switch (authStatus) {
       case AuthStatus.notSignedIn:
-        return new LoginPage(
-          title: 'Landings Login ',
+
+       return new LoginPage(
+          title: widget.userid,
           auth: widget.auth,
           onSignedIn: () => _updateAuthStatus(AuthStatus.signedIn),
-        //  alice:widget.alice
+
         );
       case AuthStatus.signedIn:
 

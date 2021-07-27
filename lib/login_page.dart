@@ -53,6 +53,7 @@ class _LoginPageState extends State<LoginPage> {
       if (_formType == FormType.login) {
 
         UserResponse resp = await widget.auth.signIn(
+    //        UserResponse resp = await widget.auth.login(
             _user.userid, _user.password);
 
         if (resp.error == '200') {
@@ -108,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
  //       keyboardType: TextInputType.emailAddress,
         decoration: new InputDecoration(labelText: 'User ID '),
          autocorrect: false,
-   //     initialValue: 'jmcfet',
+ //       initialValue: widget.title,
  //       validator: (val) => validateEmail(val),
         onSaved: (val) => _user.userid = val,
       )),

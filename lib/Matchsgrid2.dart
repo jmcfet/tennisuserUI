@@ -32,7 +32,7 @@ class UserMatchsDataGrid2 extends StatefulWidget {
 class _UserMatchsState extends State<UserMatchsDataGrid2> {
   final AuthASP auth;
   int month;
-  int currentmonth = 7;
+  int currentmonth = 8;
   bool bLoggedIn = true;
   TennisDataGridSource _tennisDataGridSource;
   Map<String,double> columnswidths = Map();
@@ -91,7 +91,8 @@ class _UserMatchsState extends State<UserMatchsDataGrid2> {
           }
         }
       }
-
+// loop thru every player who registered for month and their playing status (available,sub, etc) this way we
+      //pickup the people who were subs and the ones who were available but were not booked
       bookingsresp.datesandstatus.forEach((booking) {
 
 
@@ -105,20 +106,20 @@ class _UserMatchsState extends State<UserMatchsDataGrid2> {
         playerinfo.phonenum = booking.user.phonenum;
         _tennisDataGridSource.allPlayers.add(playerinfo);
         statusdays = booking.status.split(',');
+        //create a list of days in month and the players status for that day
         _daysinMonth = CustomCalendar().getJustMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays, startWeekDay: StartWeekDay.monday);
         //loop thru all the M-W-F for month states
         int col = 0;
 
         for(int day =0;day < _daysinMonth.length;day++)
         {
-      //    if (_daysinMonth[day].date.month == month) {
-
+    // if a M-W-F
             if (_daysinMonth[day].date.weekday == 1 ||
                 _daysinMonth[day].date.weekday == 3 ||
                 _daysinMonth[day].date.weekday == 5) {
                   if (_daysinMonth[day].state == 1) {
                     bActivePlayer = true;
-                    playerinfo.matches[col] = 9;
+                    playerinfo.matches[col] = 9;    //a sub
                   }
                   if (_daysinMonth[day].state == 0) {
                     findMatch(_daysinMonth[day].date.day,playerinfo,col);
@@ -172,7 +173,7 @@ findMatch(int day,PlayerData playerinfo,int columnNum){
     return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: Text(' July Matchs  Blue = Captain '),
+          title: Text(' August Matchs  Blue = Captain '),
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.play_circle_filled),

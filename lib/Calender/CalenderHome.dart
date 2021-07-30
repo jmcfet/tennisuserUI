@@ -44,7 +44,7 @@ class _MyAppState extends State<CalenderHome> {
   List<String> statusdays = [];
   List<User> allusers = [];
   bool saveButtonEnabled = true;
-  int defaultStatus = 0;
+  int defaultStatus = 2;
 //  static FileService fileservice = new FileService();
   @override
   void initState()  {
@@ -146,90 +146,57 @@ class _MyAppState extends State<CalenderHome> {
             _toggleBtn(true),
           ],
         ),
-        Row(
+        viewOnlyMode == false && statusdays.length == 0 ?  Row(
           children: [
             Text(
-                'Available ',
+                'Set all days to ',
                 style: TextStyle(
                   color: Colors.white,
                 ),
 
             ),
-            ConstrainedBox(
-              constraints: BoxConstraints.tightFor(width: 30, height: 30),
-              child:
-              ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  defaultStatus = 0;
-                  _getCalendar();
-                } );
-              },
-              style: ElevatedButton.styleFrom(
-                  primary: Colors.green, // background
-                  shape: new RoundedRectangleBorder(
-                      borderRadius: new BorderRadius.circular(30.0),
+            defaultStatus !=0 ? makeButton(Colors.green,() {
+              setState(() {
+                defaultStatus = 0;
+                _getCalendar();
+              } );
+            },) :Container(),
 
-                  )
-                )
-              )
-            ),
             Text(
-              'Sub ',
+              ' ',
               style: TextStyle(
                 color: Colors.white,
               ),
 
             ),
-            ConstrainedBox(
-                constraints: BoxConstraints.tightFor(width: 30, height: 30),
-                child:
-                ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        defaultStatus = 1;
-                        _getCalendar();
-                      } );
-                    },
-                    style: ElevatedButton.styleFrom(
-                        primary: Colors.yellow, // background
-                        shape: new RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(30.0),
+            defaultStatus !=1 ? makeButton(Colors.yellow,() {
+              setState(() {
+                defaultStatus = 1;
+                _getCalendar();
+              } );
+              },)
+                :Container(),
 
-                        )
-                    )
-                )
-            ),
-            Text(
-              'Not Available ',
+             Text(
+              ' ',
               style: TextStyle(
                 color: Colors.white,
               ),
 
             ),
-            ConstrainedBox(
-                constraints: BoxConstraints.tightFor(width: 30, height: 30),
-                child:
-                ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        defaultStatus = 2;
-                        _getCalendar();
-                      } );
-                    },
-                    style: ElevatedButton.styleFrom(
-                        primary: Colors.grey, // background
-                        shape: new RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(30.0),
+            defaultStatus !=2 ? makeButton(Colors.grey,() {
+              setState(() {
+                defaultStatus = 2;
+                _getCalendar();
+              } );
+            }
+            )
+            :Container(),
 
-                        )
-                    )
-                )
-            ),
 
           ],
 
-        ),
+        ) : Container(),
    //     SizedBox(height: 20,),
         Divider(color: Colors.white,),
         SizedBox(height: 20,),
@@ -340,12 +307,17 @@ class _MyAppState extends State<CalenderHome> {
         Calendar date1 =  _sequentialDates[index - 7];
         if (date1.thisMonth) {
           if (!viewOnlyMode){
-              if (_sequentialDates[index - 7].thisMonth) {
-                if (_sequentialDates[index - 7].date.weekday == 1 ||
-                   _sequentialDates[index - 7].date.weekday == 3 ||
-                  _sequentialDates[index - 7].date.weekday == 5
-              )
-               return _selector(_sequentialDates[index - 7],false);
+              if (date1.thisMonth) {
+                if (date1.date.weekday == 1 ||
+                   date1.date.weekday == 3 ||
+                  date1.date.weekday == 5
+                ) {
+                  if (date1.state == -1)
+                    return _calendarDates(date1);
+                  else
+                    return _selector(date1, false);
+
+                }
            }
           }
           else {
@@ -407,30 +379,51 @@ class _MyAppState extends State<CalenderHome> {
     );
 
   }
+
   Widget LegendScheduler() {
     return Container(
         color: Colors.black,
-        height: 40,
+        height:80,
         child: Column(
-          children: [
-            Row(
-                children: [
-
-                  Text("tap to change default status then press SAVE CHANGES button) ",
-                    style: TextStyle(
-                        color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-
-                ]
-
-            )
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Row(children: [
+              makeButton(Colors.yellow,(){}),
+              Text(
+                ' Sub',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+              makeButton(Colors.green,(){}),
+              Text(
+                ' Available',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+              makeButton(Colors.grey,(){}),
+              Text(
+                ' Unavailable',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ]),
+            Row(children: [
+              Expanded(
+                child: Text(
+                  "tap circled date to change status press SAVE CHANGES to save ",
+                  style: TextStyle(color: Colors.white),
+                  //         textAlign: TextAlign.center,
+                ),
+              )
+            ]),
           ],
         )
-
     );
-
   }
+
   // calendar header
   Widget _weekDayTitle(int index){
     return Text(_weekDays[index], style: TextStyle(color: Colors.yellow, fontSize: 12),);
@@ -465,12 +458,16 @@ class _MyAppState extends State<CalenderHome> {
 
   // date selector
   Widget _selector(Calendar calendarDate,bool bCaptain) {
-    var currentColor = Colors.green.withOpacity(0.9);
+    var currentColor;
   //  int state =_sequentialDates[calendarDate.date.day].state;
 
  //   if(States[calendarDate.date.day]  == null)
  //     States[calendarDate.date.day] = 0;
     switch (calendarDate.state){
+      case 0:
+        currentColor = bCaptain == true?  Colors.red.withOpacity(0.9):
+        Colors.green.withOpacity(0.9);
+        break;
       case  1:
         currentColor = Colors.yellow;
         break;
@@ -478,12 +475,12 @@ class _MyAppState extends State<CalenderHome> {
         currentColor = Colors.grey;
         break;
       default:
-        currentColor = bCaptain == true?  Colors.red.withOpacity(0.9):
-        Colors.green.withOpacity(0.9);
+        break;
+
 
     }
 
-    return Center(
+      return Center(
 
 
       child: Container(
@@ -497,7 +494,7 @@ class _MyAppState extends State<CalenderHome> {
             color: currentColor,
             child: Text( '${calendarDate.date.day}'),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(60),
+              borderRadius: BorderRadius.circular(25),
             ),
             onPressed: ()  {
               selectedDate = calendarDate.date.day;
@@ -514,11 +511,11 @@ class _MyAppState extends State<CalenderHome> {
               showPlayers(m);
 
             }
-   //                 });
-         //   },
           )
       ),
     );
+
+
   }
   final List<String> states = ['available','unavailable', 'sub'     ];
   String currentChoice;
@@ -789,23 +786,27 @@ class _MyAppState extends State<CalenderHome> {
     return rowcontent;
 
   }
-  Widget makeButton(currentColor){
+
+
+  Widget makeButton(currentColor,VoidCallback performAction){
     return
       ConstrainedBox(
-        constraints: BoxConstraints.tightFor(width: 40, height: 40),
-        child:
+          constraints: BoxConstraints.tightFor(width: 30, height: 30),
+          child:
           ElevatedButton(
+              onPressed: performAction,
+              style: ElevatedButton.styleFrom(
+                  primary: currentColor, // background
 
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-                primary: Colors.red, // background
-              shape: new RoundedRectangleBorder(
-                borderRadius: new BorderRadius.circular(30.0),
+                  shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(30.0),
 
+                  )
               )
-            )
-        )
+          )
       );
 
   }
+
+
 }

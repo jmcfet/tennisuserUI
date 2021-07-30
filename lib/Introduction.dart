@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
-import 'matchsGrid.dart';
 import 'primary_button.dart';
 class Intro extends StatefulWidget {
   Intro({Key key,  this.auth}) : super(key: key);
@@ -23,7 +22,7 @@ class _IntroPageState extends State<Intro> {
 
 
   static final formKey = new GlobalKey<FormState>();
-  bool bFroozen;
+  bool bFroozen = false;
   void initState() {
 
 
@@ -33,8 +32,7 @@ class _IntroPageState extends State<Intro> {
   Future <void> getDBState( ) async {
 
        bool btemp =     await widget.auth.isDBFrozen();
-       btemp = false;
-      setState(() => bFroozen = btemp);
+       setState(() => bFroozen = btemp);
       return;
   }
   final List<String> _monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -42,7 +40,7 @@ class _IntroPageState extends State<Intro> {
   @override
   Widget build(BuildContext context) {
   //  final int month =  DateTime.now().month;
-    final int month = 7;
+    final int month = 8;
     return MaterialApp(
 
            debugShowCheckedModeBanner: false,

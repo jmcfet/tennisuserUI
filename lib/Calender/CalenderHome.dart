@@ -45,6 +45,7 @@ class _MyAppState extends State<CalenderHome> {
   List<User> allusers = [];
   bool saveButtonEnabled = true;
   int defaultStatus = 2;
+  bool longPress = false;
 //  static FileService fileservice = new FileService();
   @override
   void initState()  {
@@ -146,7 +147,7 @@ class _MyAppState extends State<CalenderHome> {
             _toggleBtn(true),
           ],
         ),
-        viewOnlyMode == false && statusdays.length == 0 ?  Row(
+        viewOnlyMode == false &&   statusdays.length == 0  ?  Row(
           children: [
             Text(
                 'Set all days to ',
@@ -155,7 +156,7 @@ class _MyAppState extends State<CalenderHome> {
                 ),
 
             ),
-            defaultStatus !=0 ? makeButton(Colors.green,() {
+            defaultStatus !=0   ? makeButton(Colors.green,() {
               setState(() {
                 defaultStatus = 0;
                 _getCalendar();
@@ -169,7 +170,7 @@ class _MyAppState extends State<CalenderHome> {
               ),
 
             ),
-            defaultStatus !=1 ? makeButton(Colors.yellow,() {
+            defaultStatus !=1 && statusdays.length == 0   ? makeButton(Colors.yellow,() {
               setState(() {
                 defaultStatus = 1;
                 _getCalendar();
@@ -184,7 +185,7 @@ class _MyAppState extends State<CalenderHome> {
               ),
 
             ),
-            defaultStatus !=2 ? makeButton(Colors.grey,() {
+            defaultStatus !=2  && statusdays.length == 0 ? makeButton(Colors.grey,() {
               setState(() {
                 defaultStatus = 2;
                 _getCalendar();
@@ -481,9 +482,7 @@ class _MyAppState extends State<CalenderHome> {
     }
 
       return Center(
-
-
-      child: Container(
+        child: Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
@@ -500,7 +499,14 @@ class _MyAppState extends State<CalenderHome> {
               selectedDate = calendarDate.date.day;
               if (!viewOnlyMode) {
          //       showChoices();
-                _showSingleChoiceDialog(context,calendarDate.state);
+  //              if (longPress == true) {
+  //                Calendar selectedday = _sequentialDates.where((element) => element.date.month == _currentDateTime.month &&
+  //                    element.date.day == selectedDate).singleOrNull;
+ //                 setState((){selectedday.state = defaultStatus;});
+
+  //              }
+  //               else
+                    _showSingleChoiceDialog(context,calendarDate.state);
 
                 return;
               }
@@ -795,6 +801,16 @@ class _MyAppState extends State<CalenderHome> {
           child:
           ElevatedButton(
               onPressed: performAction,
+  //            onLongPress: (){
+  //              longPress = true;
+  //              if (currentColor ==  Colors.green)
+  //                  defaultStatus = 0;
+  //              else if (currentColor == Colors.yellow)
+  //                  defaultStatus = 1;
+   //             else
+  //                  defaultStatus = 2;
+
+   //           },
               style: ElevatedButton.styleFrom(
                   primary: currentColor, // background
 

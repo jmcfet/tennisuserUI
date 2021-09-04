@@ -71,7 +71,10 @@ class CustomCalendar{
        bNewUser = true;
     // get this month's calendar days
     for(int i=0; i<totalDays; i++){
-      int state1 = bNewUser == true ? defaultStatus : int.parse(existingstatus[i+1]);
+      int state1 = defaultStatus;
+        if (!bNewUser )
+            state1 = int.parse(existingstatus[i+1]);
+ //     int state1 = bNewUser == true ? defaultStatus : int.parse(existingstatus[i+1]);
       calendar.add(
         Calendar(
           // i+1 because day starts from 1 in DateTime class

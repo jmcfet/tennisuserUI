@@ -8,14 +8,14 @@ import 'package:json_annotation/json_annotation.dart';
 
 
 class MatchDTO{
-  int id;
-  int month;
-  int day;
-  int level;
-  String Captain;
- List<String> players;
+  late int id;
+  late int month;
+  late int day;
+  late int level;
+  late String Captain;
+ List<String> players =  <String>[];
 
-  MatchDTO({this.id,this.month,this.day,this.level,this.Captain,this.players  });
+  MatchDTO({this.id =0,this.month = 1 ,this.day = 1,this.level = 1,this.Captain = '' ,required this.players  });
 
  // factory MatchDTO.fromJson(Map<String, dynamic> json) =>
  //     _$MatchDTOFromJson(json);

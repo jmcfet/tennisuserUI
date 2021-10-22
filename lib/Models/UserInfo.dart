@@ -1,7 +1,7 @@
 class UserInfo {
  // String month;
  // String EMail;
-  List<int> values;
+  List<int> values = <int>[];
   Map<String, dynamic> toJson() =>
       {
     //    'month': month,

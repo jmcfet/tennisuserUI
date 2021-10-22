@@ -1,5 +1,5 @@
 import 'Models/user.dart';
 class Globals {
-  static String token; //oauth token
-  static User user;
+  static String token = ''; //oauth token
+  static User? user = null;
 }

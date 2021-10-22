@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 class HomePage extends StatelessWidget {
-  HomePage({this.auth, this.onSignOut});
+  HomePage({required this.auth, required this.onSignOut});
 
   final AuthASP auth;
   final VoidCallback onSignOut;

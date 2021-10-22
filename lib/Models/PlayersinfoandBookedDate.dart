@@ -7,16 +7,17 @@ part 'PlayersinfoandBookedDate.g.dart';
 
 @JsonSerializable(nullable: false)
 class PlayersinfoandBookedDates{
-  int Id;
-  User user;
-  int Month;
-  int day;
-  String status;
-  bool bIsCaptain;
+  late int Id;
+  late User user;
+  late int Month;
+  late int day;
+  late String status;
+  late bool bIsCaptain = false;
 //  int  timesCaptain;
 
 
-  PlayersinfoandBookedDates ({this.Id,  this.Month,this.status,this.bIsCaptain,this.day,this.user});
+  // ignore: non_constant_identifier_names
+  PlayersinfoandBookedDates ({required this.Id ,  required this.Month,required this.status,required this.bIsCaptain,required this.day, required this.user});
   // ({this.Id,   this.Name,this.Month,this.status,this.timesCaptain,this.bIsCaptain,this.level,this.day,this.user});
 
   // factory PlayersinfoandBookedDates.fromJson(Map<String, dynamic> json) =>
@@ -24,10 +25,11 @@ class PlayersinfoandBookedDates{
   //handle the embedded user object
   factory PlayersinfoandBookedDates.fromJson(Map<String, dynamic> json){
     var obj = PlayersinfoandBookedDates(
-        Id: json['Id'] as int,
+        Id: json['Id'] == null ? 0:json['Id'] as int,
         Month: json['month'] as int,
         status: json['status'] as String,
         bIsCaptain: false,
+        day: 2,
         user: User.fromJson(json['user'])
     );
 

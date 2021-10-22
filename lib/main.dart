@@ -1,50 +1,39 @@
 import 'package:flutter/material.dart';
 import 'root_page.dart';
 import 'auth.dart';
-import 'dart:html';
+//import 'dart:html';
 import 'login_page.dart';
 import 'Introduction.dart';
 
 
 void main() {
-  getParams();
+
   runApp(MyApp());
 }
-String origin;
-void getParams() {
-  var uri = Uri.dataFromString(window.location.href);
-  Map<String, String> params = uri.queryParameters;
-   origin = params['origin'];
-   if (origin == null)
-     origin = "john";
-  var destiny = params['destiny'];
-  print(origin);
-  print(destiny);
-}
+
+
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
-
+  const MyApp({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: origin,
+      title: 'origin',
       debugShowCheckedModeBanner: false,
       theme: new ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new RootPage(auth: new AuthASP(),userid: origin,),
+      home: new RootPage(key:key),
     );
   }
 
 }
 
 class RootPage extends StatefulWidget {
-  RootPage({Key key, this.auth,this.userid}) : super(key: key);
-  final AuthASP auth;
-  String userid;
+  RootPage({Key? key}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => new _RootPageState(auth);
+  State<StatefulWidget> createState() => new _RootPageState();
 }
 
 enum AuthStatus {
@@ -53,9 +42,9 @@ enum AuthStatus {
 }
 
 class _RootPageState extends State<RootPage> {
-  _RootPageState(this.auth);
+  _RootPageState();
 
-  final AuthASP auth;
+  final AuthASP auth = new AuthASP();
   AuthStatus authStatus = AuthStatus.notSignedIn;
 
   initState() {
@@ -78,14 +67,16 @@ class _RootPageState extends State<RootPage> {
     switch (authStatus) {
       case AuthStatus.notSignedIn:
         return new LoginPage(
-          title: widget.userid,
-          auth: widget.auth,
+          title: 'title',
+          key:widget.key,
+          auth: new AuthASP(),
           onSignedIn: () => _updateAuthStatus(AuthStatus.signedIn),
 
         );
       case AuthStatus.signedIn:
         return new Intro(
-          auth: widget.auth,
+          auth: new AuthASP(),
+          key:widget.key,
           //      onSignOut: () => _updateAuthStatus(AuthStatus.notSignedIn)
         );
     }

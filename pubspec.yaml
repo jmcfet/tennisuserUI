@@ -18,22 +18,32 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
+  url_launcher: ^6.0.2
+  path_provider: ^2.0.1
+  path_provider_macos: ^2.0.0
 
-  http: ^0.12.0+2
+  http:  ^0.13.0-nullsafety.0
   awesome_dialog: ^2.0.0
-  syncfusion_flutter_datagrid: ^19.1.58
+  youtube_player_iframe: ^2.0.0
+
+  syncfusion_flutter_datagrid_export:
+
+
+    path: C:\Program Files (x86)\Syncfusion\Essential Studio\Flutter\19.3.0.43\Packages\flutter_datagrid_export
+
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.1
-  youtube_player_iframe: ^2.0.0
+
 
 dev_dependencies:
-  json_serializable: ^2.0.0
+
   build_runner: ^1.0.0
   flutter_test:
     sdk: flutter

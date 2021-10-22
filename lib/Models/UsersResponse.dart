@@ -3,8 +3,8 @@ import 'package:login/Models/user.dart';
 
 
 class UsersResponse {
-  List<User> users;
-  String error;
+  List<User> users = <User>[];
+  String error = '';
 
 
   UsersResponse();

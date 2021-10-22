@@ -2,8 +2,8 @@ import 'user.dart';
 
 
 class UserResponse {
-  User user;
-  String error;
+  User? user;
+  String error = '';
 
 
   UserResponse();

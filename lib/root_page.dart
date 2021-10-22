@@ -7,7 +7,7 @@ import "package:login/Calender/CalenderHome.dart";
 
 
 class RootPage extends StatefulWidget {
-  RootPage({Key key, this.auth,this.userid}) : super(key: key);
+  RootPage({required Key key, required this.auth,required this.userid}) : super(key: key);
   final AuthASP auth;
   String userid;
 
@@ -47,6 +47,7 @@ class _RootPageState extends State<RootPage> {
       case AuthStatus.notSignedIn:
 
        return new LoginPage(
+         key:widget.key,
           title: widget.userid,
           auth: widget.auth,
           onSignedIn: () => _updateAuthStatus(AuthStatus.signedIn),
@@ -56,6 +57,7 @@ class _RootPageState extends State<RootPage> {
 
         return new Intro(
             auth: widget.auth,
+            key: widget.key,
       //      onSignOut: () => _updateAuthStatus(AuthStatus.notSignedIn)
         );
     }

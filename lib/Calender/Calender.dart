@@ -55,7 +55,7 @@ class CustomCalendar{
     // validate
     if(year == null || month == null || month < 1 || month > 12) throw ArgumentError('Invalid year or month');
 
-    List<Calendar> calendar = List<Calendar>();
+    List<Calendar> calendar = <Calendar>[];
 
     // used for previous and next month's calendar days
     int otherYear;
@@ -87,8 +87,8 @@ class CustomCalendar{
 
     // fill the unfilled starting weekdays of this month with the previous month days
     if(
-    (startWeekDay == StartWeekDay.sunday && calendar.first.date.weekday != DateTime.sunday) ||
-        (startWeekDay == StartWeekDay.monday && calendar.first.date.weekday != DateTime.monday)
+    (startWeekDay == StartWeekDay.sunday && calendar.first.date!.weekday != DateTime.sunday) ||
+        (startWeekDay == StartWeekDay.monday && calendar.first.date!.weekday != DateTime.monday)
     ){
       // if this month is january, then previous month would be decemeber of previous year
       if(month == DateTime.january){
@@ -103,7 +103,7 @@ class CustomCalendar{
       totalDays = _monthDays[otherMonth - 1];
       if(_isLeapYear(otherYear) && otherMonth == DateTime.february) totalDays++;
 
-      leftDays = totalDays - calendar.first.date.weekday + ((startWeekDay == StartWeekDay.sunday) ? 0 : 1);
+      leftDays = totalDays - calendar.first.date!.weekday + ((startWeekDay == StartWeekDay.sunday) ? 0 : 1);
 
       for(int i=totalDays; i>leftDays; i--){
         calendar.insert(0,
@@ -117,8 +117,8 @@ class CustomCalendar{
 
     // fill the unfilled ending weekdays of this month with the next month days
     if(
-    (startWeekDay == StartWeekDay.sunday && calendar.last.date.weekday != DateTime.saturday) ||
-        (startWeekDay == StartWeekDay.monday && calendar.last.date.weekday != DateTime.sunday)
+    (startWeekDay == StartWeekDay.sunday && calendar.last.date!.weekday != DateTime.saturday) ||
+        (startWeekDay == StartWeekDay.monday && calendar.last.date!.weekday != DateTime.sunday)
     ){
       // if this month is december, then next month would be january of next year
       if(month == DateTime.december){
@@ -133,7 +133,7 @@ class CustomCalendar{
       totalDays = _monthDays[otherMonth-1];
       if(_isLeapYear(otherYear) && otherMonth == DateTime.february) totalDays++;
 
-      leftDays = 7 - calendar.last.date.weekday - ((startWeekDay == StartWeekDay.sunday) ? 1 : 0);
+      leftDays = 7 - calendar.last.date!.weekday - ((startWeekDay == StartWeekDay.sunday) ? 1 : 0);
       if(leftDays == -1) leftDays = 6;
 
       for(int i=0; i<leftDays; i++){
@@ -154,13 +154,13 @@ class CustomCalendar{
 
 
 class Calendar{
-  final DateTime date;
+  final DateTime? date;
   final bool thisMonth;
   final bool prevMonth;
   final bool nextMonth;
   int state;
   Calendar({
-    this.date,
+    this.date = null,
     this.thisMonth = false,
     this.prevMonth = false,
     this.nextMonth = false,

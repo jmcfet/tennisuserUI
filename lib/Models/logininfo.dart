@@ -1,6 +1,6 @@
 class loginInfo {
-   String Username;
-   String Password;
+   String Username = '';
+   String Password = '';
    Map<String, dynamic> toJson() =>
        {
          //    'month': month,

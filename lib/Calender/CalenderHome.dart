@@ -18,29 +18,26 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 enum CalendarViews{ dates, months, year }
 
 class CalenderHome extends StatefulWidget {
-  final AuthASP auth;
+  final AuthASP? auth;
   final bool viewOnlyMode ;
   final int month;
-  CalenderHome({this.auth,this.viewOnlyMode,this.month});
+  CalenderHome({this.auth,required this.viewOnlyMode,required this.month});
   @override
-  _MyAppState createState() => _MyAppState(auth,viewOnlyMode,month);
+  _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<CalenderHome> {
-  _MyAppState(this.auth,this.viewOnlyMode,this.month);
-  final AuthASP auth;
-  final bool viewOnlyMode ;
-  final int month;
-  DateTime _currentDateTime;
-  DateTime _selectedDateTime;
-  List<Calendar> _sequentialDates;
-  int midYear;
+
+  DateTime _currentDateTime = DateTime.now();
+  DateTime? _selectedDateTime;
+  List<Calendar> _sequentialDates =  <Calendar>[];
+  int midYear =1;
   CalendarViews _currentView = CalendarViews.dates;
   final List<String> _weekDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
   final List<String> _monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  List<int> States = List();
-  List<MatchDTO> matches = [];
-  String existingBookings;
+  List<int> States = <int>[];
+  List<MatchDTO>? matches = [];
+  String existingBookings = '';
   List<String> statusdays = [];
   List<User> allusers = [];
   bool saveButtonEnabled = true;
@@ -51,16 +48,16 @@ class _MyAppState extends State<CalenderHome> {
   void initState()  {
     super.initState();
     final date = DateTime.now();
-    _currentDateTime = DateTime(date.year, month);
-    _selectedDateTime = DateTime(date.year, month, date.day);
+    _currentDateTime = DateTime(date.year, widget.month);
+    _selectedDateTime = DateTime(date.year, widget.month, date.day);
 //    getDBState();
-    if (viewOnlyMode == true) {
-      getuserinfo(month);
+    if (widget.viewOnlyMode == true) {
+      getuserinfo();
       getallUsers();
     }
     else
       {
-        getBookDates(month);
+        getBookDates(widget.month);
       }
 
 
@@ -72,8 +69,8 @@ class _MyAppState extends State<CalenderHome> {
     super.dispose();
   }
 
-  Future <String> getuserinfo(int month ) async {
-    MatchsResponse resp =   await auth.getMatchsForMonth(month, Globals.user.email);
+  Future <String> getuserinfo( ) async {
+    MatchsResponse resp =   await widget.auth!.getMatchsForMonth(widget.month, Globals.user!.email);
     matches = resp.matches;
  //   WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
 
@@ -83,16 +80,16 @@ class _MyAppState extends State<CalenderHome> {
   }
   //get the status of each bookable day in the month. e,g june 5 is unavailable
   Future <String> getBookDates(int month ) async {
-    BookedDatesResponse resp =   await auth.GetMonthStatusforUser(month.toString(), Globals.user.email);
+    BookedDatesResponse resp =   await widget.auth!.GetMonthStatusforUser(month.toString(), Globals.user!.email);
     if (resp.status != null) {
-      int numDays = int.parse(resp.status.status[0]);
-      statusdays = resp.status.status.split(',');
+
+      statusdays = resp.status!.status.split(',');
     }
     setState(() => _getCalendar());
-    return resp.status.status;
+    return resp.status!.status;
   }
   Future <void> getallUsers( ) async {
-    UsersResponse resp =    await auth.getUsers();
+    UsersResponse resp =    await widget.auth!.getUsers();
     allusers = resp.users;
   }
 
@@ -118,9 +115,9 @@ class _MyAppState extends State<CalenderHome> {
 
   // dates view
   Widget _datesView(){
-    String title = Globals.user.Name + ' ' +  _monthNames[_currentDateTime.month-1] + ' ' ;
-    if (!viewOnlyMode)
-     title = Globals.user.Name   + ' ' + _monthNames[_currentDateTime.month-1] + ' ' ;
+    String title = Globals.user!.Name! + ' ' +  _monthNames[_currentDateTime.month-1] + ' ' ;
+    if (!widget.viewOnlyMode)
+     title = Globals.user!.Name!   + ' ' + _monthNames[_currentDateTime.month-1] + ' ' ;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -147,7 +144,7 @@ class _MyAppState extends State<CalenderHome> {
             _toggleBtn(true),
           ],
         ),
-        viewOnlyMode == false &&   statusdays.length == 0  ?  Row(
+        widget.viewOnlyMode == false &&   statusdays.length == 0  ?  Row(
           children: [
             Text(
                 'Set all days to ',
@@ -203,7 +200,7 @@ class _MyAppState extends State<CalenderHome> {
         SizedBox(height: 20,),
         Flexible(child: _calendarBody()),
         SizedBox(height: 20,),
-        viewOnlyMode == false ? LegendScheduler() : LegendShowSchedule()
+        widget.viewOnlyMode == false ? LegendScheduler() : LegendShowSchedule()
 
       ],
     );
@@ -211,17 +208,17 @@ class _MyAppState extends State<CalenderHome> {
 
   // next / prev month buttons
   Widget _toggleBtn(bool next) {
-    if (viewOnlyMode == false)
+    if (widget.viewOnlyMode == false)
       return Container();
     return InkWell(
       onTap: () async{
 
-          if (viewOnlyMode){
+          if (widget.viewOnlyMode){
             (next) ? _getNextMonth() : _getPrevMonth();
 
           }
-          MatchsResponse resp = await auth.getMatchsForMonth(_currentDateTime.month, Globals.user.email);
-          matches = resp.matches;
+          MatchsResponse? resp = await widget.auth?.getMatchsForMonth(_currentDateTime.month, Globals.user!.email);
+          matches = resp!.matches;
           setState(() {});
 
 
@@ -253,7 +250,7 @@ class _MyAppState extends State<CalenderHome> {
     );
   }
   Widget _SaveBtn(context) {
-    if (viewOnlyMode == true )
+    if (widget.viewOnlyMode == true )
       return Container();
     return ElevatedButton(
         child: Text("Save Changes", style: TextStyle(fontSize: 20),),
@@ -271,8 +268,8 @@ class _MyAppState extends State<CalenderHome> {
            }
            States[0] = count;
 
-           UserResponse resp = await auth.SetBookedDatesforuser(Globals.user.email,_currentDateTime.month,States);
-           if (resp.error == '200')
+           UserResponse? resp = await widget.auth?.SetBookedDatesforuser(Globals.user!.email,_currentDateTime.month,States);
+           if (resp!.error == '200')
              {
                AwesomeDialog(
                    context: context,
@@ -307,11 +304,11 @@ class _MyAppState extends State<CalenderHome> {
         if(index < 7) return _weekDayTitle(index);
         Calendar date1 =  _sequentialDates[index - 7];
         if (date1.thisMonth) {
-          if (!viewOnlyMode){
+          if (!widget.viewOnlyMode){
               if (date1.thisMonth) {
-                if (date1.date.weekday == 1 ||
-                   date1.date.weekday == 3 ||
-                  date1.date.weekday == 5
+                if (date1.date!.weekday == 1 ||
+                   date1.date!.weekday == 3 ||
+                  date1.date!.weekday == 5
                 ) {
                   if (date1.state == -1)
                     return _calendarDates(date1);
@@ -322,12 +319,12 @@ class _MyAppState extends State<CalenderHome> {
            }
           }
           else {
-            MatchDTO m = matches.firstWhereOrNull((element) =>
-            element.day == date1.date.day);
+            MatchDTO? m = matches!.firstWhereOrNull((element) =>
+            element.day == date1.date!.day);
             if (m == null)
               return _calendarDates(_sequentialDates[index - 7]);
             bool bisCaptain = false;
-            if (m.Captain == Globals.user.Name)
+            if (m.Captain == Globals.user!.Name)
               bisCaptain = true;
             return _selector(_sequentialDates[index - 7],bisCaptain);
           }
@@ -446,11 +443,11 @@ class _MyAppState extends State<CalenderHome> {
       },
       child: Center(
           child: Text(
-            '${calendarDate.date.day}',
+            '${calendarDate.date!.day}',
             style: TextStyle(
               color: (calendarDate.thisMonth)
-                  ? (calendarDate.date.weekday == DateTime.sunday) ? Colors.yellow : Colors.white
-                  : (calendarDate.date.weekday == DateTime.sunday) ? Colors.yellow.withOpacity(0.5) : Colors.white.withOpacity(0.5),
+                  ? (calendarDate.date!.weekday == DateTime.sunday) ? Colors.yellow : Colors.white
+                  : (calendarDate.date!.weekday == DateTime.sunday) ? Colors.yellow.withOpacity(0.5) : Colors.white.withOpacity(0.5),
             ),
           )
       ),
@@ -491,13 +488,13 @@ class _MyAppState extends State<CalenderHome> {
           ),
           child: RaisedButton(
             color: currentColor,
-            child: Text( '${calendarDate.date.day}'),
+            child: Text( '${calendarDate.date!.day}'),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(25),
             ),
             onPressed: ()  {
-              selectedDate = calendarDate.date.day;
-              if (!viewOnlyMode) {
+              selectedDate = calendarDate.date!.day;
+              if (!widget.viewOnlyMode) {
          //       showChoices();
   //              if (longPress == true) {
   //                Calendar selectedday = _sequentialDates.where((element) => element.date.month == _currentDateTime.month &&
@@ -512,7 +509,7 @@ class _MyAppState extends State<CalenderHome> {
               }
              //    .then((value) async{
               //      if (_sequentialDates[selectedDate].state == 8){
-              MatchDTO m = matches.firstWhereOrNull((element) => element.day == selectedDate);
+              MatchDTO? m = matches!.firstWhereOrNull((element) => element.day == selectedDate);
 
               showPlayers(m);
 
@@ -524,8 +521,8 @@ class _MyAppState extends State<CalenderHome> {
 
   }
   final List<String> states = ['available','unavailable', 'sub'     ];
-  String currentChoice;
-  int selectedDate;
+  String currentChoice = '';
+  int selectedDate = 0;
   _showSingleChoiceDialog(BuildContext context,int state) => showDialog(
       context: context,
       builder: (context) {
@@ -547,23 +544,23 @@ class _MyAppState extends State<CalenderHome> {
                     //    if (value != currentChoice) {
                          setState( () {
                            var test = selectedDate;
-                           Calendar selectedday = _sequentialDates.where((element) => element.date.month == _currentDateTime.month &&
-                               element.date.day == selectedDate).singleOrNull;
+                           Calendar? selectedday = _sequentialDates.where((element) => element.date!.month == _currentDateTime.month &&
+                               element.date!.day == selectedDate).singleOrNull;
                            switch (value) {
                              case 'available':
-                                selectedday.state = 0;
+                                selectedday!.state = 0;
                                 break;
                               case 'sub':
-                                selectedday.state = 1;
+                                selectedday!.state = 1;
                                 break;
                               case 'unavailable':
-                                selectedday.state = 2;
+                                selectedday!.state = 2;
                                 break;
                               case 'match':
-                                selectedday.state = 8;
+                                selectedday!.state = 8;
                                 break;
                               default:
-                                selectedday.state = 0;
+                                selectedday!.state = 0;
                             }
                           }
                           );
@@ -577,9 +574,9 @@ class _MyAppState extends State<CalenderHome> {
               ),
             ));
       });
-  showPlayers(MatchDTO m){
-     AwesomeDialog dialog;
-     dialog = AwesomeDialog(
+  showPlayers(MatchDTO? m){
+     AwesomeDialog dialog =
+      AwesomeDialog(
       context: context,
       animType: AnimType.SCALE,
       dialogType: DialogType.INFO,
@@ -601,7 +598,7 @@ class _MyAppState extends State<CalenderHome> {
                 color: Colors.blueGrey.withAlpha(40),
                 child: Row(
                   children:
-                    getPlayerinfoforMatch(m.players[0])
+                    getPlayerinfoforMatch(m!.players[0])
                   ,
                 )
 
@@ -647,7 +644,7 @@ class _MyAppState extends State<CalenderHome> {
             AnimatedButton(
                 text: 'Close',
                 pressEvent: () {
-                  dialog.dissmiss();
+  //                dialog.dissmiss();
                 })
           ],
         ),
@@ -681,23 +678,23 @@ class _MyAppState extends State<CalenderHome> {
 
                               setState( () {
                                 var test = selectedDate;
-                                Calendar selectedday = _sequentialDates.where((element) => element.date.month == _currentDateTime.month &&
-                                    element.date.day == selectedDate).singleOrNull;
+                                Calendar? selectedday = _sequentialDates.where((element) => element.date!.month == _currentDateTime.month &&
+                                    element.date!.day == selectedDate).singleOrNull;
                                 switch (value) {
                                   case 'available':
-                                    selectedday.state = 0;
+                                    selectedday!.state = 0;
                                     break;
                                   case 'sub':
-                                    selectedday.state = 1;
+                                    selectedday!.state = 1;
                                     break;
                                   case 'unavailable':
-                                    selectedday.state = 2;
+                                    selectedday!.state = 2;
                                     break;
                                   case 'match':
-                                    selectedday.state = 8;
+                                    selectedday!.state = 8;
                                     break;
                                   default:
-                                    selectedday.state = 0;
+                                    selectedday!.state = 0;
                                 }
                               }
                               );
@@ -778,10 +775,10 @@ class _MyAppState extends State<CalenderHome> {
     var number = '';
     var user = allusers.where((u) => u.email == email ).single;
     if (user.phonenum != null)
-      number = user.phonenum;
+      number = user.phonenum!;
     rowcontent.add(Expanded(
     flex:1,
-    child: Text( user.Name)
+    child: Text( user.Name as String)
     )
     );
     rowcontent.add(Expanded(
@@ -818,7 +815,7 @@ class _MyAppState extends State<CalenderHome> {
                     borderRadius: new BorderRadius.circular(30.0),
 
                   )
-              )
+              ), child: null,
           )
       );
 

@@ -11,13 +11,13 @@ part 'user.g.dart';
 
 
 class User{
-  String id;
-  String Name;
-  String userid;
-  String email;
-  String phonenum;
-  String password;
-  int isFrozen;
+  String? id = '';
+  String? Name;
+  String? userid;
+  String? email;
+  String? phonenum;
+  String? password;
+  int isFrozen = 0;
 
 
   User({this.id,this.Name,this.email,this.password,this.userid,this.phonenum});

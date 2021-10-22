@@ -1,8 +1,8 @@
 import 'PlayersinfoandBookedDate.dart';
 
 class AllBookedDatesResponse {
-  List<PlayersinfoandBookedDates> datesandstatus;
-  String error;
+  List<PlayersinfoandBookedDates> datesandstatus = <PlayersinfoandBookedDates>[];
+  String error = '';
 
 
  AllBookedDatesResponse();

@@ -4,15 +4,12 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:http/http.dart';
+
+import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:login/Models/MatchDTO.dart';
-import 'package:login/Models/UsersResponse.dart';
-import 'Calender/Calender.dart';
-import 'auth.dart';
-import 'Models/user.dart';
-import "Models/AllBookedDatesResp.dart";
+import 'dart:html';
+
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 
 
@@ -20,163 +17,53 @@ import "Models/AllBookedDatesResp.dart";
 class UserMatchsDataGrid2 extends StatefulWidget {
   /// Creates datagrid with selection option(single/multiple and select/unselect)
   ///
-  final AuthASP auth;
-  final int month;
+  List<PlayerData> playersinfo = [];
+  List<PlayerData> allPlayers = [];
+  List<String> columns = [];
+  int currentmonth = 0;
+  Map<String,double> columnswidths = Map();
 
-  UserMatchsDataGrid2({this.auth,this.month } );
+  UserMatchsDataGrid2({required List<PlayerData> playersinfoin,required List<PlayerData> allPlayersin,required int monthin,required List<String> columnsin,
+  required Map<String,double> columnwidthsin})
+  {
+    playersinfo = playersinfoin;
+    currentmonth = monthin;
+    allPlayers = allPlayersin;
+    columns = columnsin;
+    columnswidths = columnwidthsin;
+  }
   int firstDynamicColumn = 2;
   @override
-  _UserMatchsState createState() => _UserMatchsState(auth,month);
+  _UserMatchsState createState() => _UserMatchsState();
 }
 
 class _UserMatchsState extends State<UserMatchsDataGrid2> {
-  final AuthASP auth;
-  int month;
-  int currentmonth = 9;
+
+  GlobalKey<SfDataGridState> _key = GlobalKey<SfDataGridState>();
   bool bLoggedIn = true;
-  TennisDataGridSource _tennisDataGridSource;
-  Map<String,double> columnswidths = Map();
-  List<MatchDTO> matchs ;
-  List<User> allusers = [];
-  List<Calendar> _daysinMonth;
+  late TennisDataGridSource _tennisDataGridSource;
+
+  final List<String> _monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 
-  _UserMatchsState(this.auth,this.month);
   @override
   void initState() {
     super.initState();
-    getUsersandInitGrid();
-
+    _tennisDataGridSource = TennisDataGridSource(playersinfo: widget.playersinfo, bLoggedIn: bLoggedIn, allPlayersin: widget.allPlayers, columns: widget.columns);
   }
 
-  Future <void> getUsersandInitGrid( ) async {
-    DateTime _currentDateTime = DateTime(DateTime.now().year, currentmonth);
-    UsersResponse resp =    await auth.getUsers();
-    allusers = resp.users;
-    var resp1 = await auth.getAllMatchs();
-    AllBookedDatesResponse bookingsresp = await auth.getMonthStatus(currentmonth.toString());
-    Map<String ,List<int>> subs = new Map<String ,List<int>>();
-    matchs = resp1.matches.where((element) => element.month == currentmonth).toList();
-    setState(() {
-      _tennisDataGridSource = TennisDataGridSource(bLoggedIn);
-      _tennisDataGridSource.matchs = matchs;
-      _tennisDataGridSource.columns = [];
-      MatchDTO last = null;
-      List<String> playersinMonth= [];
-      int columnNum = 0;
-      _tennisDataGridSource.columns.add( 'Name');
-      columnswidths['Name'] = 150;
-      if (bLoggedIn) {
-        _tennisDataGridSource.columns.add('EMail');
-        columnswidths['EMail'] = 200;
-        _tennisDataGridSource.columns.add('Phone');
-        columnswidths['Phone'] = 150;
-      }
-//use the first bookings for month to get the M-W-F for grid headings
-      int day = -1;
-      List<String> statusdays = bookingsresp.datesandstatus[0].status.split(',');
-      _daysinMonth = CustomCalendar().getJustMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays, startWeekDay: StartWeekDay.monday);
-      for(int day =0;day < _daysinMonth.length;day++)
-      {
-        if (_daysinMonth[day].date.month == currentmonth) {
-          if (_daysinMonth[day].date.weekday == 1 ||
-              _daysinMonth[day].date.weekday == 3 ||
-              _daysinMonth[day].date.weekday == 5) {
-            if (!_tennisDataGridSource.columns.contains(
-                _daysinMonth[day].date.day.toString())) {
-              _tennisDataGridSource.columns.add(
-                  _daysinMonth[day].date.day.toString());
-              columnswidths[_daysinMonth[day].date.day.toString()] = 50;
-            }
-          }
-        }
-      }
-// loop thru every player who registered for month and their playing status (available,sub, etc) this way we
-      //pickup the people who were subs and the ones who were available but were not booked
-      bookingsresp.datesandstatus.forEach((booking) {
 
 
-        PlayerData playerinfo = new PlayerData();
-        playerinfo.matches = new List(32);
-        bool bActivePlayer = false;
-        if (booking.user.phonenum == null)
-          booking.user.phonenum = '1111111111';
-        playerinfo.name = booking.user.Name;
-        playerinfo.email = booking.user.email;
-        playerinfo.phonenum = booking.user.phonenum;
-        _tennisDataGridSource.allPlayers.add(playerinfo);
-        statusdays = booking.status.split(',');
-        //create a list of days in month and the players status for that day
-        _daysinMonth = CustomCalendar().getJustMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays, startWeekDay: StartWeekDay.monday);
-        //loop thru all the M-W-F for month states
-        int col = 0;
-
-        for(int day =0;day < _daysinMonth.length;day++)
-        {
-    // if a M-W-F
-            if (_daysinMonth[day].date.weekday == 1 ||
-                _daysinMonth[day].date.weekday == 3 ||
-                _daysinMonth[day].date.weekday == 5) {
-                  if (_daysinMonth[day].state == 1) {
-                    bActivePlayer = true;
-                    playerinfo.matches[col] = 9;    //a sub
-                  }
-                  if (_daysinMonth[day].state == 0) {
-                    findMatch(_daysinMonth[day].date.day,playerinfo,col);
-                    bActivePlayer = true;
-                  }
-
-                }
-
-          //  }
-            col++;
-          }
-
-          if (bActivePlayer)
-            _tennisDataGridSource.playersinfo.add(playerinfo);
-      });
-    });
-    return ;
-
-  }
-findMatch(int day,PlayerData playerinfo,int columnNum){
-
-  List<MatchDTO> matchsforday = matchs.where((element) =>
-  element.day == day).toList();
-  int iNumMatch = 0;
-  bool bFound = false;
-  //we are processing member by member . look thru the matchs for this day and see if member is
-  //in the match and if they are the captain
-  matchsforday.forEach((matchforday) {
-    iNumMatch++;
-    for (int ii = 0; ii < 4; ii++) {
-      User user = allusers.where((u) => u.email == matchforday.players[ii] ).single;
-      if (user.Name == playerinfo.name) {
-        bFound = true;
-        playerinfo.matches[columnNum] = iNumMatch;
-        if (playerinfo.name == matchforday.Captain) {
-          playerinfo.CaptainthatDay[columnNum] = 1;
-        }
-
-      }
-    }
-    if (!bFound)  //player was left out as not enough players
-      playerinfo.matches[columnNum] = 8;
-  });
-
-
-}
   @override
   Widget build(BuildContext context) {
-    if (_tennisDataGridSource == null)
-      return Container();
+
     return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: Text(' September Matchs  Blue = Captain '),
+          title: Text(_monthNames[widget.currentmonth-1] + '  Matchs  '),
           actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.play_circle_filled),
+            ElevatedButton(
+              child: Text('Export To Pdf'),
               onPressed: () {
                 createPDF();;
               },
@@ -185,12 +72,12 @@ findMatch(int day,PlayerData playerinfo,int columnNum){
         body:  SfDataGrid(
             headerRowHeight: 40,
             rowHeight: 40,
-
+            key:_key,
             source: _tennisDataGridSource,
-            columns: _tennisDataGridSource.columns
-                .map<GridColumn>((columnName) => GridTextColumn(
+            columns: widget.columns
+                .map<GridColumn>((columnName) => GridColumn(
                 columnName: columnName,
-                width: columnswidths[columnName],
+                width: widget.columnswidths[columnName] as double,
                 label: Container(
                   padding: EdgeInsets.all(3),
                   alignment: Alignment.center,
@@ -209,75 +96,131 @@ findMatch(int day,PlayerData playerinfo,int columnNum){
     );
 
   }
-}
-createPDF(){
+   createPDF( ) async{
+  //   PdfDocument document = _key.currentState!.exportToPdfDocument();
+     //                 final List<int> bytes = document.save();
+     //                 File(bytes,'DataGrid.pdf');
+     //                await saveAndLaunchFile(bytes, 'DataGrid.pdf');
+     //to produce landscape we need to create a pdfgrid first
+     PdfDocument document = PdfDocument(
 
+     );
+     document.pageSettings.orientation = PdfPageOrientation.landscape;
+     PdfPage pdfPage = document.pages.add();
+     PdfGrid pdfGrid = _key.currentState!.exportToPdfGrid(
+
+       cellExport: (DataGridCellPdfExportDetails details) {
+
+         int columnNum = int.tryParse(details.columnName) ?? -1;   //only look for Captain in numeric columns
+         if (columnNum != -1 && details.cellType == DataGridExportCellType.row) {
+           String tt = details.cellValue as String;
+           int found = tt.indexOf('C');
+           if (found != -1) {
+
+             details.pdfCell.value  = details.pdfCell.value.substring(0,details.pdfCell.value.length - 1);   //emove the C
+             details.pdfCell.style.backgroundBrush = PdfBrushes.lightGray;    //make the cell gray
+           }
+         }
+       },
+     );
+     pdfGrid.draw(
+         page: pdfPage,
+         bounds: Rect.fromLTWH(0, 0, 0, 0));
+     final List<int> bytes = document.save();
+
+     await saveAndLaunchFile(bytes, _monthNames[widget.currentmonth-1] +'DataGrid.pdf');
+     document.dispose();
+  }
 }
+
+
+
+
+
 class TennisDataGridSource extends DataGridSource {
-  List<String> columns = [];
 
-  List<MatchDTO> matchs;
-  List<DataGridRow> _matchData = [];
-  List<PlayerData> playersinfo = [];
   List<PlayerData> allPlayers = [];
-  bool bLoggedIn;
-  TennisDataGridSource(this.bLoggedIn);
+  TennisDataGridSource({required List<PlayerData> playersinfo,required bLoggedIn,required List<PlayerData> allPlayersin,required List<String> columns }) {
+    allPlayers = allPlayersin;
+    dataGridRows = playersinfo
+        .map<DataGridRow>((e) {
+      List<DataGridCell> cells = [];
 
-  @override
-  List<DataGridRow> get rows =>
-      playersinfo.map<DataGridRow>((e) {
-        List<DataGridCell> cells = [];
-        cells.add(DataGridCell<String>(columnName: 'Name', value: e.name),);
-        if (bLoggedIn){
-               cells.add(DataGridCell<String>(
-                   columnName: 'EMail', value: e.email));
-              cells.add(DataGridCell<String>(
-                  columnName: 'Phone', value: e.phonenum));
+      cells.add(DataGridCell<String>(columnName: 'Name', value: e.name),);
+      if (bLoggedIn){
+        var number = e.phonenum.substring(0,3) + '-' +e.phonenum.substring(3);
+        cells.add(DataGridCell<String>(
+            columnName: 'EMail', value: e.email));
+        cells.add(DataGridCell<String>(
+            columnName: 'Phone', value: number));
+      }
+// add the dynnamic columns
+      columns.forEach((element) {
+        bool bSpecial = false;
+        //only the dynamic columns have a numeric value
+        int columnNum = int.tryParse(element) ?? -1;
+        if (columnNum != -1){
+          columnNum =  columnNum -1;     //old zero offset
+          String matchs = e.matches[columnNum].toString();
+          if (matchs == '9' ){
+            bSpecial = true;
+            matchs = 'S';     //a sub
+          }
+          if (matchs == '8' ) {
+            bSpecial = true;    //available
+            matchs = 'A';
+          }
+          if (matchs == '0' ){
+            bSpecial = true;
+            matchs = '';
+          }
+           if ( !bSpecial) {
+             PlayerData data = allPlayers
+                 .where((element) => element.name == e.name)
+                 .single;
+
+             if (data.CaptainthatDay[columnNum] == 1)
+               matchs += 'C';
+           }
+
+          cells.add(DataGridCell<String>(
+
+              columnName: element, value: matchs));
         }
 
-        this.columns.forEach((element) {
-          //only the dynamic columns have a numeric value
-          int columnNum = int.tryParse(element) ?? -1;
-          if (columnNum != -1){
-            columnNum =  columnNum -1;     //old zero offset
-            cells.add(DataGridCell<String>(
+      });
 
-                columnName: element, value: e.matches[columnNum].toString()));
-          }
+      return DataGridRow(
+          cells: cells);
+    }).toList();
+  }
 
-        });
-
-        return DataGridRow(
-            cells: cells);
-      }).toList();
+  List<DataGridRow> dataGridRows = [];
 
   @override
-  DataGridRowAdapter buildRow(DataGridRow row) {
+  List<DataGridRow> get rows => dataGridRows;
+
+  @override
+  DataGridRowAdapter? buildRow(DataGridRow row) {
     var playerName = row.getCells()[0].value;
+    int column = 0;
     return DataGridRowAdapter(
         cells: row.getCells().map<Widget>((dataGridCell) {
-          Color getColor() {
-            int columnNum = int.tryParse(dataGridCell.columnName) ?? -1;
-            if (columnNum != -1) {
-              PlayerData data = allPlayers.where((element) => element.name == playerName).single;;
-              if (data.CaptainthatDay[columnNum-1] == 1)
-                return Colors.blue;
+
+     //     var temp = row.getCells()[i++].value;
+          String content = dataGridCell.value;
+          Color cellColor = Colors.transparent;
+          if (++column  > 2)
+            {    //PDF will see C beside the match number
+              int index = content.indexOf('C');
+              if (index != -1) {
+                cellColor = Colors.black12;
+                content  = content.substring(0,content.length - 1);
+              }
 
             }
-            if (columnNum == -1)
-              return Colors.grey;
-            return Colors.transparent;
-          }
-          String content = dataGridCell.value;
-
-          if (dataGridCell.value == '9' )
-            content = 'S';
-          if (dataGridCell.value == '8' )
-            content = 'A';
-          if (dataGridCell.value == "null" )
-            content = '-';
           return Container(
-              color: getColor(),
+              color: cellColor,
               alignment:
               Alignment.center,
               padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -293,14 +236,12 @@ class TennisDataGridSource extends DataGridSource {
 
         }).toList());
   }
-
 }
-
 class PlayerData{
-  String name;
-  String email;
-  String phonenum;
-  bool IsCaptain;
+  String name = '';
+  String email = '';
+  String phonenum = '';
+  bool IsCaptain = false;
   List<int> matches = [];
   List<int> CaptainthatDay = [];
   PlayerData(){
@@ -312,3 +253,17 @@ class PlayerData{
     }
   }
 }
+
+//  NOTE THIS ONLY WORKS IN FLUTTER WEB BUT THAT IS MY TARGET NOW
+Future<void> saveAndLaunchFile(
+    List<int> bytes, String fileName) async {
+  AnchorElement(
+      href:
+      'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(
+          bytes)}')
+    ..setAttribute('download', fileName)
+    ..click();
+
+
+}
+

@@ -3,8 +3,8 @@ import "BookDates.dart";
 
 
 class BookedDatesResponse {
-  BookDates status;
-  String error;
+  BookDates? status;
+  String error = '';
 
 
   BookedDatesResponse();

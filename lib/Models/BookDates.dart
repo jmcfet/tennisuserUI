@@ -8,13 +8,13 @@ import 'package:json_annotation/json_annotation.dart';
 
 
 class BookDates{
-  int id;
-  int month;
-  int day;
-  int level;
-  String status;
+  late int id;
+  late int month;
+  late int day;
+  late int level;
+  late String status;
 
-  BookDates({this.id,this.month,this.day,this.level,this.status  });
+  BookDates({this.id =0,this.month =0,this.day=0,this.level=0,this.status =''  });
 
   // factory MatchDTO.fromJson(Map<String, dynamic> json) =>
   //     _$MatchDTOFromJson(json);
@@ -23,8 +23,8 @@ class BookDates{
 
     id =  json['id'] as int ;
     month =  json['month'] as int;
-    day =  json['day'] as int;
-    level =  json['level'] as int;
+//    day =  json['day'] as int;
+ //   level =  json['level'] as int;
     status = json['status'];
 
   }

@@ -8,7 +8,7 @@ import 'package:login/globals.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 
 class LoginPage extends StatefulWidget {
-  LoginPage({Key key, this.title, this.auth,this.onSignedIn}) : super(key: key);
+  LoginPage({required Key? key, required this.title, required this.auth,required this.onSignedIn}) : super(key: key);
   final VoidCallback onSignedIn;
   final String title;
   final AuthASP auth;
@@ -38,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
   }
   bool validateAndSave() {
     final form = formKey.currentState;
-    if (form.validate()) {
+    if (form!.validate()) {
       form.save();
       return true;
     }
@@ -54,20 +54,32 @@ class _LoginPageState extends State<LoginPage> {
 
         UserResponse resp = await widget.auth.signIn(
     //        UserResponse resp = await widget.auth.login(
-            _user.userid, _user.password);
+            _user.userid ?? '', _user.password ?? '');
 
         if (resp.error == '200') {
           resp = await widget.auth.getUser(
-              _user.userid);
+              _user.userid ?? '');
+          if (resp.error != '200'){
+
+            _showDialog(resp.error);
+            setState(() {
+              _authHint = resp.error;
+              isLoading = false;
+            });
+            return;
+          }
+
           Globals.user = resp.user;
           widget.onSignedIn();
-        } else {
+        } else {   //signin failed
           setState(() {
             _authHint = resp.error;
             isLoading = false;
           });
         }
       } else {
+        //ad to make this call seperately as using asp.net on backend and signin returns a token , we have no control of this till
+        //switch to .net core
         UserResponse resp = await widget.auth.register(_user);
 
         if (resp.error == '200') {
@@ -86,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void moveToRegister() {
-    formKey.currentState.reset();
+    formKey.currentState!.reset();
     setState(() {
       _formType = FormType.register;
       _authHint = 'userid is id you will use to login;email must be one known to club; ';
@@ -94,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void moveToLogin() {
-    formKey.currentState.reset();
+    formKey.currentState!.reset();
     setState(() {
       _formType = FormType.login;
       _authHint = '';
@@ -109,30 +121,32 @@ class _LoginPageState extends State<LoginPage> {
  //       keyboardType: TextInputType.emailAddress,
         decoration: new InputDecoration(labelText: 'User ID '),
          autocorrect: false,
- //       initialValue: widget.title,
+//        initialValue: 'billybob',
  //       validator: (val) => validateEmail(val),
         onSaved: (val) => _user.userid = val,
       )),
       _formType == FormType.register? padded(child: new TextFormField(
-        key: new Key('Name (John Smith)'),
+        key: new Key('Name (name)'),
         decoration: new InputDecoration(labelText: 'Name ' ),
-   //     initialValue: 'first and last names ',
+ //      initialValue: 'first and last names ',
         autocorrect: false,
     //    validator: (val) => validateEmail(val),
         onSaved: (val) => _user.Name = val,
       )):Container(),
       _formType == FormType.register? padded(child: new TextFormField(
-        key: new Key('Name (John Smith)'),
+        key: new Key('Name (email)'),
         decoration: new InputDecoration(labelText: 'EMail '),
+ //       initialValue: 'jmcfet@bellsouth.net',
         autocorrect: false,
-        validator: (val) => validateEmail(val),
+        validator: (val) => validateEmail(val ?? ''),
         onSaved: (val) => _user.email = val,
       )):Container(),
       _formType == FormType.register? padded(child: new TextFormField(
-        key: new Key('Name (John Smith)'),
+        key: new Key('Name (phonenum)'),
+ //       initialValue: '3523594634',
         decoration: new InputDecoration(labelText: 'Phone number '),
         autocorrect: false,
-        validator: (val) => validateMobile(val),
+        validator: (val) => validateMobile(val ?? ''),
         onSaved: (val) => _user.phonenum = val,
       )):Container(),
       padded(child: new TextFormField(
@@ -140,11 +154,11 @@ class _LoginPageState extends State<LoginPage> {
         decoration: new InputDecoration(labelText: 'Password (must be at least 6 characters)'),
         obscureText: true,
         autocorrect: false,
-        validator: (val) => validatepassword(val),
+        validator: (val) => validatepassword(val ?? ''),
         onSaved: (val) => _user.password = val,
       )),
       _formType == FormType.register? padded(child: new TextFormField(
-        key: new Key('confirm password'),
+        key: new Key('confirmpassword'),
         decoration: new InputDecoration(labelText: 'confirm Password'),
   //      initialValue: '1234567h',
         obscureText: true,
@@ -157,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   //For Email Verification we using RegEx.
-  String validateEmail(String value) {
+  String? validateEmail(String value) {
     String pattern = r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
     RegExp regExp = new RegExp(pattern);
     if (value.length == 0) {
@@ -168,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
       return null;
     }
   }
-  String validateMobile(String value) {
+  String? validateMobile(String value) {
     String patttern = r'(^[0-9]*$)';
     RegExp regExp = new RegExp(patttern);
     if (value.length == 0) {
@@ -180,13 +194,13 @@ class _LoginPageState extends State<LoginPage> {
     }
     return null;
   }
-  String confirmPassword(value)
+  String? confirmPassword(value)
   {
     if (_user.password != value)
       return  'Password must match';
     return null;
   }
-  String validatepassword(String value) {
+  String? validatepassword(String value) {
     if (value.isEmpty)
       return  'Password must be filled in';
     _user.password = value;
@@ -300,12 +314,13 @@ class _LoginPageState extends State<LoginPage> {
       appBar: new AppBar(
         title:   Text(heading),
           actions: <Widget>[
-            IconButton(
-                icon: Icon(Icons.play_circle_filled),
-                onPressed: () {
-                PlayHelpVideo();
-                },
+            ElevatedButton(
+              child: Text('tutorial video'),
+              onPressed: () {
+                PlayHelpVideo();;
+              },
             )],
+
       ),
       backgroundColor: Colors.grey[300],
       body: new SingleChildScrollView(child: new Container(
@@ -337,7 +352,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget padded({Widget child}) {
+  Widget padded({required Widget child}) {
     return new Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0),
       child: child,
@@ -346,7 +361,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void forgotPassword() async{
     var _formkey = new GlobalKey<FormState>();
-    AwesomeDialog dialog;
+    AwesomeDialog? dialog = null;
     dialog = AwesomeDialog(
       context: context,
       animType: AnimType.SCALE,
@@ -372,12 +387,12 @@ class _LoginPageState extends State<LoginPage> {
                 child: TextFormField(
                   autofocus: true,
                   minLines: 1,
-                  validator: (val) => validateEmail(val),
+                  validator: (val) => validateEmail(val ?? ''),
                   onSaved:
-                      (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter some text';
-                    }
+                      ( value) {
+   //                 if (value == null || value.isEmpty) {
+   //                   return 'Please enter some text';
+  //                  }
                     _user.email = value;
                     return null;
                   },
@@ -399,7 +414,7 @@ class _LoginPageState extends State<LoginPage> {
                   maxLengthEnforced: true,
                   minLines: 2,
                   maxLines: null,
-                  validator: (val) => validatepassword(val),
+                  validator: (val) => validatepassword(val ?? ''),
                   onSaved: (val) => _user.password = val,
                   decoration: InputDecoration(
                     border: InputBorder.none,
@@ -414,10 +429,10 @@ class _LoginPageState extends State<LoginPage> {
               AnimatedButton(
                   text: 'Close',
                   pressEvent: () async {
-                    _formkey.currentState.validate();
-                    _formkey.currentState.save();
-                    await widget.auth.resetPassword(_user.email,_user.password);
-                    dialog.dissmiss();
+                    _formkey.currentState!.validate();
+                    _formkey.currentState!.save();
+                    await widget.auth.resetPassword(_user.email ?? '',_user.password ?? '');
+                    dialog!.dissmiss();
                   })
 
             ]

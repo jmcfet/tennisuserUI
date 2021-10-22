@@ -244,13 +244,13 @@ class AuthASP  {
       });
 
     }  catch (e) {
-      resp.error = e.message;
+      resp.error = 'register failed';
     }
 
     return resp;
 
   }
-  Future<UserResponse> SetBookedDatesforuser(String email,int month,List<int> States) async {
+  Future<UserResponse> SetBookedDatesforuser(String? email,int month,List<int> States) async {
     UserResponse resp = new UserResponse();
    UserInfo info = UserInfo();
 
@@ -286,7 +286,7 @@ class AuthASP  {
 
 
     }  catch (e) {
-        resp.error = e.message;
+        resp.error = 'SetBookedDatesforuser failed';
     }
 
     return resp;
@@ -338,7 +338,7 @@ class AuthASP  {
     };
     //all calls to the server are now secure so must pass the oAuth token or our call will be rejected
     String authorization =  'Bearer ' + Globals.token;
-    Map usermap;
+    Map<String,dynamic> usermap;
     try {
       var url = new Uri(scheme: scheme,
           host: server,
@@ -352,16 +352,18 @@ class AuthASP  {
           headers: {HttpHeaders.authorizationHeader: authorization}
 
       );
-       usermap = json.decode(response.body);
-
+      resp.error = response.statusCode.toString();
+      usermap = json.decode(response.body);
+      resp.user = User.fromJson(usermap);
     } catch (error, stacktrace) {
         print("Exception occured: $error stackTrace: $stacktrace");
-        resp.error = error;
-        return resp;
+        resp.error = error.toString();
+
     }
-    resp.user = User.fromJson(usermap);
-    return  resp;
-    //   return resp;
+    finally {
+      return resp;
+    }
+
 
   }
   Future<UsersResponse>  getUsers() async {
@@ -380,7 +382,7 @@ class AuthASP  {
 
     } catch (error, stacktrace) {
       print("Exception occured: $error stackTrace: $stacktrace");
-      resp.error = error;
+      resp.error = error.toString();
       return resp;
     }
     resp.users = list.map((model) => User.fromJson(model)).toList();
@@ -404,14 +406,14 @@ class AuthASP  {
 
     } catch (error, stacktrace) {
       print("Exception occured: $error stackTrace: $stacktrace");
-      resp.error = error;
+      resp.error = error.toString();
       return resp;
     }
     resp.matches  = list.map((model) => MatchDTO.fromJSON(model)).toList();
 
     return resp;
   }
-  Future<MatchsResponse>  getMatchsForMonth(int month,String Name) async {
+  Future<MatchsResponse>  getMatchsForMonth(int month,String? Name) async {
     MatchsResponse resp = new MatchsResponse();
     List<MatchDTO> matchinfo = [];
     var response;
@@ -449,10 +451,10 @@ class AuthASP  {
     //   return resp;
 
   }
-  Future<BookedDatesResponse>  GetMonthStatusforUser(String month,String email) async {
+  Future<BookedDatesResponse>  GetMonthStatusforUser(String month,String? email) async {
     BookedDatesResponse resp = new BookedDatesResponse();
     var response;
-    Map Datesmap;
+    Map<String,dynamic> Datesmap;
     var queryParameters1 = {
       'month': month,
       'email': email
@@ -559,7 +561,7 @@ class AuthASP  {
 
     } catch (error, stacktrace) {
       print("Exception occured: $error stackTrace: $stacktrace");
-      resp.error = error;
+      resp.error = error.toString();
       return resp;
     }
     resp.datesandstatus = list.map((model) => PlayersinfoandBookedDates.fromJson(model)).toList();

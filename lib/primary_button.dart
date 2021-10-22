@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 
 class PrimaryButton extends StatelessWidget {
-  PrimaryButton({this.key, this.text, this.height, this.onPressed}) : super(key: key);
-  Key key;
+  PrimaryButton({required this.key, required this.text, required this.height, required this.onPressed}) : super(key: key);
+  Key? key;
   String text;
   double height;
   VoidCallback onPressed;

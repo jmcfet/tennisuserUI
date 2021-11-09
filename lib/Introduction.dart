@@ -54,7 +54,7 @@ class _IntroPageState extends State<Intro> {
   @override
   Widget build(BuildContext context) {
   //  final int month =  DateTime.now().month;
-    final int month = 10;
+    final int month = 11;
     return MaterialApp(
 
            debugShowCheckedModeBanner: false,

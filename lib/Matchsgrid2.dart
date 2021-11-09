@@ -71,7 +71,7 @@ class _UserMatchsState extends State<UserMatchsDataGrid2> {
         ),
         body:  SfDataGrid(
             headerRowHeight: 40,
-            rowHeight: 40,
+            rowHeight: 25,
             key:_key,
             source: _tennisDataGridSource,
             columns: widget.columns
@@ -117,8 +117,9 @@ class _UserMatchsState extends State<UserMatchsDataGrid2> {
            int found = tt.indexOf('C');
            if (found != -1) {
 
-             details.pdfCell.value  = details.pdfCell.value.substring(0,details.pdfCell.value.length - 1);   //emove the C
-             details.pdfCell.style.backgroundBrush = PdfBrushes.lightGray;    //make the cell gray
+             details.pdfCell.value  = details.pdfCell.value.substring(0,details.pdfCell.value.length - 1);   //remove the C
+             details.pdfCell.style.backgroundBrush = PdfBrushes.blue;    //make the cell gray
+             details.pdfCell.style.textBrush = PdfBrushes.white;
            }
          }
        },
@@ -210,11 +211,14 @@ class TennisDataGridSource extends DataGridSource {
      //     var temp = row.getCells()[i++].value;
           String content = dataGridCell.value;
           Color cellColor = Colors.transparent;
+          Color textColor = Colors.black;
           if (++column  > 2)
             {    //PDF will see C beside the match number
               int index = content.indexOf('C');
               if (index != -1) {
-                cellColor = Colors.black12;
+                cellColor = Colors.blue;
+                textColor = Colors.white;
+
                 content  = content.substring(0,content.length - 1);
               }
 
@@ -228,6 +232,9 @@ class TennisDataGridSource extends DataGridSource {
                   child:Text(
 
                     content,
+                    style: TextStyle(
+                        color: textColor,
+                    )   ,
                     textAlign:TextAlign.center,
                     overflow: TextOverflow.ellipsis,
 
@@ -255,8 +262,8 @@ class PlayerData{
 }
 
 //  NOTE THIS ONLY WORKS IN FLUTTER WEB BUT THAT IS MY TARGET NOW
-Future<void> saveAndLaunchFile(
-    List<int> bytes, String fileName) async {
+Future<void> saveAndLaunchFile( List<int> bytes, String fileName) async {
+
   AnchorElement(
       href:
       'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(

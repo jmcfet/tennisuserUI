@@ -51,17 +51,12 @@ class _MyAppState extends State<CalenderHome> {
     _currentDateTime = DateTime(date.year, widget.month);
     _selectedDateTime = DateTime(date.year, widget.month, date.day);
 //    getDBState();
-    if (widget.viewOnlyMode == true) {
+    if (widget.viewOnlyMode == true) {   //viewing previous month that has been scheduled so need user info for matches
       getuserinfo();
       getallUsers();
     }
-    else
-      {
-        getBookDates(widget.month);
-      }
 
-
-
+     getBookDates(widget.month);
   }
 
   @override
@@ -463,7 +458,7 @@ class _MyAppState extends State<CalenderHome> {
  //     States[calendarDate.date.day] = 0;
     switch (calendarDate.state){
       case 0:
-        currentColor = bCaptain == true?  Colors.red.withOpacity(0.9):
+        currentColor = bCaptain == true ?  Colors.red.withOpacity(0.9):
         Colors.green.withOpacity(0.9);
         break;
       case  1:
@@ -575,7 +570,8 @@ class _MyAppState extends State<CalenderHome> {
             ));
       });
   showPlayers(MatchDTO? m){
-     AwesomeDialog dialog =
+    AwesomeDialog? dialog ;
+     dialog =
       AwesomeDialog(
       context: context,
       animType: AnimType.SCALE,
@@ -644,7 +640,7 @@ class _MyAppState extends State<CalenderHome> {
             AnimatedButton(
                 text: 'Close',
                 pressEvent: () {
-  //                dialog.dissmiss();
+                  dialog?.dissmiss();
                 })
           ],
         ),

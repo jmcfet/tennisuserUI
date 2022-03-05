@@ -67,7 +67,7 @@ class CustomCalendar{
     int totalDays = _monthDays[month - 1];
     // if this is a leap year and the month is february, increment the total days by 1
     if(_isLeapYear(year) && month == DateTime.february) totalDays++;
-    if (existingstatus.length == 0)    //a new user has no day info so assume always available
+    if (existingstatus.length == 0)    //a new user has no day info so assume always not available
        bNewUser = true;
     // get this month's calendar days
     for(int i=0; i<totalDays; i++){

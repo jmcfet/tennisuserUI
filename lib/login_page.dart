@@ -122,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
         decoration: new InputDecoration(labelText: 'User ID '),
          autocorrect: false,
 //        initialValue: 'billybob',
- //       validator: (val) => validateEmail(val),
+        validator: (val) => validateUserid(val),
         onSaved: (val) => _user.userid = val,
       )),
       _formType == FormType.register? padded(child: new TextFormField(
@@ -204,6 +204,13 @@ class _LoginPageState extends State<LoginPage> {
     if (value.isEmpty)
       return  'Password must be filled in';
     _user.password = value;
+    return null;
+  }
+
+  String? validateUserid(String? value) {
+    if (value!.isEmpty)
+      return  'UserId must be filled in';
+    _user.userid = value;
     return null;
   }
 

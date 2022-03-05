@@ -46,15 +46,17 @@ class _IntroPageState extends State<Intro> {
   Future <void> getDBState( ) async {
 
        bool btemp =     await widget.auth.isDBFrozen();
-       setState(() => bFroozen = btemp);
+       setState(() => bFroozen = true);    //chhange
       return;
   }
-  final List<String> _monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  final List<String> _monthNames = ['fillsonot0based','January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December','January'];
 
   @override
   Widget build(BuildContext context) {
   //  final int month =  DateTime.now().month;
-    final int month = 11;
+    final int nextMonth = 4;     //0 based
+ //   final int currentMonth = nextMonth == 0 ? 11:nextMonth;
+    final int currentMonth = 3;
     return MaterialApp(
 
            debugShowCheckedModeBanner: false,
@@ -75,14 +77,14 @@ class _IntroPageState extends State<Intro> {
                       width: double.infinity,
                       child: !bFroozen ? PrimaryButton(
 
-                        text: 'schedule your matchs for  ${  _monthNames[month]}',
+                        text: 'schedule your matchs for  ${  _monthNames[nextMonth]}',
                         height: 44.0,
                         key: widget.key,
                         onPressed: () {
                           Navigator.push(
                               context,
                               MaterialPageRoute(  // transitions to the new route using a platform-specific animation.
-                                  builder: (context) => CalenderHome(auth: new AuthASP(),viewOnlyMode:false,month: month+1)
+                                  builder: (context) => CalenderHome(auth: new AuthASP(),viewOnlyMode:false,month: nextMonth)
 
 
                               )
@@ -98,14 +100,14 @@ class _IntroPageState extends State<Intro> {
                       child:
                       PrimaryButton(
                           key: new Key('login'),
-                          text: 'view your schedule for  ${  _monthNames[month-1]}',
+                          text: 'view your schedule for  ${  _monthNames[currentMonth-1]}',
                           height: 44.0,
                         onPressed: () {
 
                           Navigator.push(
                               context,
                               MaterialPageRoute(  // transitions to the new route using a platform-specific animation.
-                                  builder: (context) => CalenderHome(auth: new AuthASP(),viewOnlyMode:true,month:month)
+                                  builder: (context) => CalenderHome(auth: new AuthASP(),viewOnlyMode:true,month:currentMonth-1)
 
 
                               )
@@ -114,7 +116,6 @@ class _IntroPageState extends State<Intro> {
                       ),
 
                     ),
-
                     SizedBox(   //Use of SizedBox
                       height: 30,
                     ),
@@ -123,15 +124,39 @@ class _IntroPageState extends State<Intro> {
                       child:
                       PrimaryButton(
                         key: new Key('login'),
-                        text: 'view GRID schedule for  ${  _monthNames[month-1]}',
+                        text: 'view your schedule for  ${  _monthNames[currentMonth]}',
                         height: 44.0,
-                        onPressed: () async {
+                        onPressed: () {
 
-                          getUsersandInitGrid(month).whenComplete(() =>
                           Navigator.push(
                               context,
                               MaterialPageRoute(  // transitions to the new route using a platform-specific animation.
-                                  builder: (context) => UserMatchsDataGrid2(playersinfoin: playersinfo, allPlayersin: allPlayers, monthin: month, columnsin: columns,columnwidthsin: columnswidths,)
+                                  builder: (context) => CalenderHome(auth: new AuthASP(),viewOnlyMode:true,month:currentMonth)
+
+
+                              )
+                          );
+                        },
+                      ),
+
+                    ),
+                    SizedBox(   //Use of SizedBox
+                      height: 30,
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child:
+                      PrimaryButton(
+                        key: new Key('login'),
+                        text: 'view GRID schedule for  ${  _monthNames[currentMonth]}',
+                        height: 44.0,
+                        onPressed: () async {
+
+                          getUsersandInitGrid(currentMonth).whenComplete(() =>
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(  // transitions to the new route using a platform-specific animation.
+                                  builder: (context) => UserMatchsDataGrid2(playersinfoin: playersinfo, allPlayersin: allPlayers, monthin: currentMonth, columnsin: columns,columnwidthsin: columnswidths,)
                               )
                           ));
                         },
@@ -208,13 +233,14 @@ class _IntroPageState extends State<Intro> {
 
       for(int day =0;day < _daysinMonth.length;day++)
       {
+
         // if a M-W-F
         if (_daysinMonth[day].date!.weekday == 1 ||
             _daysinMonth[day].date!.weekday == 3 ||
             _daysinMonth[day].date!.weekday == 5) {
           if (_daysinMonth[day].state == 1) {
             bActivePlayer = true;
-            playerinfo.matches[col] = 9;    //a sub
+            playerinfo.matches[col] = 99;    //a sub
           }
           if (_daysinMonth[day].state == 0) {
             findMatch(_daysinMonth[day].date!.day,playerinfo,col);
@@ -254,7 +280,7 @@ class _IntroPageState extends State<Intro> {
         }
       }
       if (!bFound)  //player was left out as not enough players
-        playerinfo.matches[columnNum] = 8;
+        playerinfo.matches[columnNum] = 88;
     });
 
 

@@ -20,7 +20,7 @@ enum CalendarViews{ dates, months, year }
 class CalenderHome extends StatefulWidget {
   final AuthASP? auth;
   final bool viewOnlyMode ;
-  final int month;
+  int month;
   CalenderHome({this.auth,required this.viewOnlyMode,required this.month});
   @override
   _MyAppState createState() => _MyAppState();
@@ -28,13 +28,13 @@ class CalenderHome extends StatefulWidget {
 
 class _MyAppState extends State<CalenderHome> {
 
-  DateTime _currentDateTime = DateTime.now();
-  DateTime? _selectedDateTime;
+
+
   List<Calendar> _sequentialDates =  <Calendar>[];
   int midYear =1;
   CalendarViews _currentView = CalendarViews.dates;
   final List<String> _weekDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-  final List<String> _monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  final List<String> _monthNames = ['fillsonot0based','January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   List<int> States = <int>[];
   List<MatchDTO>? matches = [];
   String existingBookings = '';
@@ -43,13 +43,16 @@ class _MyAppState extends State<CalenderHome> {
   bool saveButtonEnabled = true;
   int defaultStatus = 2;
   bool longPress = false;
+  DateTime? _currentDateTime;
+  DateTime? _selectedDateTime;
 //  static FileService fileservice = new FileService();
   @override
   void initState()  {
     super.initState();
     final date = DateTime.now();
     _currentDateTime = DateTime(date.year, widget.month);
-    _selectedDateTime = DateTime(date.year, widget.month, date.day);
+    _selectedDateTime =  DateTime(date.year, widget.month, date.day);
+
 //    getDBState();
     if (widget.viewOnlyMode == true) {   //viewing previous month that has been scheduled so need user info for matches
       getuserinfo();
@@ -76,12 +79,29 @@ class _MyAppState extends State<CalenderHome> {
   //get the status of each bookable day in the month. e,g june 5 is unavailable
   Future <String> getBookDates(int month ) async {
     BookedDatesResponse resp =   await widget.auth!.GetMonthStatusforUser(month.toString(), Globals.user!.email);
-    if (resp.status != null) {
+
+      if (!resp!.errormessage.isEmpty)       //if an exception was thrown tell user
+      {
+        AwesomeDialog(
+          context: context,
+          animType: AnimType.LEFTSLIDE,
+          headerAnimationLoop: false,
+          dialogType: DialogType.INFO,
+          title: resp.errormessage,
+          autoHide: Duration(seconds: 20),
+        )
+          ..show();
+        return 'failed';
+
+      }
+
+    if (resp.status != null) {      //there might have been no data for user
 
       statusdays = resp.status!.status.split(',');
+      return 'ok';
     }
-    setState(() => _getCalendar());
-    return resp.status!.status;
+
+    return 'failed';
   }
   Future <void> getallUsers( ) async {
     UsersResponse resp =    await widget.auth!.getUsers();
@@ -110,9 +130,9 @@ class _MyAppState extends State<CalenderHome> {
 
   // dates view
   Widget _datesView(){
-    String title = Globals.user!.Name! + ' ' +  _monthNames[_currentDateTime.month-1] + ' ' ;
+    String title = Globals.user!.Name! + ' ' +  _monthNames[_currentDateTime!.month] + ' ' ;
     if (!widget.viewOnlyMode)
-     title = Globals.user!.Name!   + ' ' + _monthNames[_currentDateTime.month-1] + ' ' ;
+     title = Globals.user!.Name!   + ' ' + _monthNames[_currentDateTime!.month] + ' ' ;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -212,8 +232,27 @@ class _MyAppState extends State<CalenderHome> {
             (next) ? _getNextMonth() : _getPrevMonth();
 
           }
-          MatchsResponse? resp = await widget.auth?.getMatchsForMonth(_currentDateTime.month, Globals.user!.email);
+          //get the users booking for this new month
+          String rc = await getBookDates(_currentDateTime!.month);
+          if (rc == 'failed'){
+              AwesomeDialog(
+                context: context,
+                animType: AnimType.LEFTSLIDE,
+                headerAnimationLoop: false,
+                dialogType: DialogType.INFO,
+                title: 'no data for month',
+                autoHide: Duration(seconds: 2),
+              )
+                ..show();
+              return ;
+
+            }
+
+          //get their matchs
+          MatchsResponse? resp = await widget.auth?.getMatchsForMonth(_currentDateTime!.month, Globals.user!.email);
           matches = resp!.matches;
+          //setup calender
+          _sequentialDates = CustomCalendar().getMonthCalendar(_currentDateTime!.month, _currentDateTime!.year, statusdays,defaultStatus, startWeekDay: StartWeekDay.monday);
           setState(() {});
 
 
@@ -263,7 +302,7 @@ class _MyAppState extends State<CalenderHome> {
            }
            States[0] = count;
 
-           UserResponse? resp = await widget.auth?.SetBookedDatesforuser(Globals.user!.email,_currentDateTime.month,States);
+           UserResponse? resp = await widget.auth?.SetBookedDatesforuser(Globals.user!.email,_currentDateTime!.month,States);
            if (resp!.error == '200')
              {
                AwesomeDialog(
@@ -272,7 +311,7 @@ class _MyAppState extends State<CalenderHome> {
                    headerAnimationLoop: false,
                    dialogType: DialogType.INFO,
                    title: 'changes saved',
-                   autoHide: Duration(seconds: 2),
+                   autoHide: Duration(seconds: 6),
                )
                  ..show();
 
@@ -539,7 +578,7 @@ class _MyAppState extends State<CalenderHome> {
                     //    if (value != currentChoice) {
                          setState( () {
                            var test = selectedDate;
-                           Calendar? selectedday = _sequentialDates.where((element) => element.date!.month == _currentDateTime.month &&
+                           Calendar? selectedday = _sequentialDates.where((element) => element.date!.month == _currentDateTime!.month &&
                                element.date!.day == selectedDate).singleOrNull;
                            switch (value) {
                              case 'available':
@@ -674,7 +713,7 @@ class _MyAppState extends State<CalenderHome> {
 
                               setState( () {
                                 var test = selectedDate;
-                                Calendar? selectedday = _sequentialDates.where((element) => element.date!.month == _currentDateTime.month &&
+                                Calendar? selectedday = _sequentialDates.where((element) => element.date!.month == _currentDateTime!.month &&
                                     element.date!.day == selectedDate).singleOrNull;
                                 switch (value) {
                                   case 'available':
@@ -706,30 +745,30 @@ class _MyAppState extends State<CalenderHome> {
   }
   // get next month calendar
   void _getNextMonth() {
-    if(_currentDateTime.month == 12) {
-      _currentDateTime = DateTime(_currentDateTime.year+1, 1);
+    if(_currentDateTime!.month == 12) {
+      _currentDateTime = DateTime(_currentDateTime!.year+1, 1);
     }
     else{
-      _currentDateTime = DateTime(_currentDateTime.year, _currentDateTime.month+1);
+      _currentDateTime = DateTime(_currentDateTime!.year, _currentDateTime!.month+1);
     }
 
-    _getCalendar();
+
   }
 
   // get previous month calendar
   void _getPrevMonth(){
-    if(_currentDateTime.month == 1){
-      _currentDateTime = DateTime(_currentDateTime.year-1, 12);
+    if(_currentDateTime!.month == 1){
+      _currentDateTime = DateTime(_currentDateTime!.year-1, 12);
     }
     else{
-      _currentDateTime = DateTime(_currentDateTime.year, _currentDateTime.month-1);
+      _currentDateTime = DateTime(_currentDateTime!.year, _currentDateTime!.month-1);
     }
     _getCalendar();
   }
 
   // get calendar for current month
   void _getCalendar(){
-    _sequentialDates = CustomCalendar().getMonthCalendar(_currentDateTime.month, _currentDateTime.year, statusdays,defaultStatus, startWeekDay: StartWeekDay.monday);
+    _sequentialDates = CustomCalendar().getMonthCalendar(_currentDateTime!.month, _currentDateTime!.year, statusdays,defaultStatus, startWeekDay: StartWeekDay.monday);
   }
 
   // show months list
@@ -740,7 +779,7 @@ class _MyAppState extends State<CalenderHome> {
           onTap: () => setState(() => _currentView = CalendarViews.year),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Text('${_currentDateTime.year}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),),
+            child: Text('${_currentDateTime!.year}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),),
           ),
         ),
         Divider(color: Colors.white,),
@@ -750,14 +789,14 @@ class _MyAppState extends State<CalenderHome> {
             itemCount: _monthNames.length,
             itemBuilder: (context, index) => ListTile(
               onTap: (){
-                _currentDateTime = DateTime(_currentDateTime.year, index+1);
+                _currentDateTime = DateTime(_currentDateTime!.year, index+1);
                 _getCalendar();
                 setState(() => _currentView = CalendarViews.dates);
               },
               title: Center(
                 child: Text(
                   _monthNames[index],
-                  style: TextStyle(fontSize: 18, color: (index == _currentDateTime.month-1) ? Colors.yellow : Colors.white),
+                  style: TextStyle(fontSize: 18, color: (index == _currentDateTime!.month-1) ? Colors.yellow : Colors.white),
                 ),
               ),
             ),

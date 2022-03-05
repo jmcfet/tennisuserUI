@@ -35,7 +35,7 @@ it should look like
             then navigate to cd \Program Files (x86)\IIS Express
             and enter IISEXpress /siteid:11
 
-            then from login/build/web do:
+            then from login do:
             flutter build web
             and nav to https://localhost:44360
             then to move to production winhost use Fillezilla and point it to ftp.w28.wh-2.com
@@ -78,7 +78,7 @@ class Auth implements BaseAuth {
 
 class AuthASP  {
   AuthASP();
- // String server = 'localhost';
+//  String server = 'localhost';
  // int port = 44340;
 //  int port = 52175;
 
@@ -454,7 +454,7 @@ class AuthASP  {
   Future<BookedDatesResponse>  GetMonthStatusforUser(String month,String? email) async {
     BookedDatesResponse resp = new BookedDatesResponse();
     var response;
-    Map<String,dynamic> Datesmap;
+    Map<String,dynamic> Datesmap = new Map<String,dynamic>();
     var queryParameters1 = {
       'month': month,
       'email': email
@@ -469,20 +469,35 @@ class AuthASP  {
     );
     try {
       response = await http.get(url);
-      Datesmap = json.decode(response.body);
+      resp.errormessage = '';
+      //check for null return this will cause decode to barf
+      if (response.body == 'null') {
 
-    } catch (error, stacktrace) {
-      print("Exception occured: $error stackTrace: $stacktrace");
-      resp.status = null;
-      return resp;
-    }
-    if (Datesmap == null)     //new user
-      {
         resp.status = null;
         return resp;
       }
-    resp.status = BookDates.fromJSON(Datesmap);
+
+      if (response.statusCode == 200) {
+        Datesmap = json.decode(response.body);
+        resp.status = BookDates.fromJSON(Datesmap);
+      }
+      else {   ///server threw so response body has exception
+        resp.errormessage =  response.body;
+        resp.status = null;
+      }
+
+
+    } catch (error, stacktrace) {
+      resp.status = null;
+      resp.errormessage = error.toString();
+
+    }
+
+
+
     return resp;
+
+
   }
   Future<bool>  isDBFrozen() async {
 

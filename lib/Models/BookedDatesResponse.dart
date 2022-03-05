@@ -4,10 +4,11 @@ import "BookDates.dart";
 
 class BookedDatesResponse {
   BookDates? status;
-  String error = '';
+  String errormessage = '';
+  int HTTPCode = 200;
 
 
   BookedDatesResponse();
   BookedDatesResponse.mock(String status):
-        status  = null,error = "";
+        status  = null,errormessage = "",HTTPCode = 200;
 }

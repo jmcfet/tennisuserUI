@@ -43,7 +43,7 @@ class _UserMatchsState extends State<UserMatchsDataGrid2> {
   bool bLoggedIn = true;
   late TennisDataGridSource _tennisDataGridSource;
 
-  final List<String> _monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  final List<String> _monthNames = ['fillsonot0based','January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 
   @override
@@ -60,7 +60,7 @@ class _UserMatchsState extends State<UserMatchsDataGrid2> {
     return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: Text(_monthNames[widget.currentmonth-1] + '  Matchs  '),
+          title: Text(_monthNames[widget.currentmonth] + '  Matchs  '),
           actions: <Widget>[
             ElevatedButton(
               child: Text('Export To Pdf'),
@@ -129,7 +129,7 @@ class _UserMatchsState extends State<UserMatchsDataGrid2> {
          bounds: Rect.fromLTWH(0, 0, 0, 0));
      final List<int> bytes = document.save();
 
-     await saveAndLaunchFile(bytes, _monthNames[widget.currentmonth-1] +'DataGrid.pdf');
+     await saveAndLaunchFile(bytes, _monthNames[widget.currentmonth] +'DataGrid.pdf');
      document.dispose();
   }
 }
@@ -163,11 +163,11 @@ class TennisDataGridSource extends DataGridSource {
         if (columnNum != -1){
           columnNum =  columnNum -1;     //old zero offset
           String matchs = e.matches[columnNum].toString();
-          if (matchs == '9' ){
+          if (matchs == '99' ){
             bSpecial = true;
             matchs = 'S';     //a sub
           }
-          if (matchs == '8' ) {
+          if (matchs == '88' ) {
             bSpecial = true;    //available
             matchs = 'A';
           }
